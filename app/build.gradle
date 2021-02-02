@@ -6,7 +6,7 @@ android {
 
 
     defaultConfig {
-        applicationId "com.pouillos.whereismycar"
+        applicationId "com.pouillos.finddoctor"
         minSdkVersion 24
         targetSdkVersion 28
         versionCode 2
@@ -30,7 +30,7 @@ android {
 
 greendao {
     schemaVersion 1
-    daoPackage "com.pouillos.whereismycar.dao" // set package of generated classes
+    daoPackage "com.pouillos.finddoctor.dao" // set package of generated classes
 }
 
 dependencies {

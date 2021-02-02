@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.pouillos.whereismycar">
+    package="com.pouillos.finddoctor">
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <application
         android:allowBackup="true"
@@ -9,16 +9,16 @@
         android:roundIcon="@mipmap/icons8_garage"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="com.pouillos.whereismycar.activities.AccueilActivity">
+        <activity android:name="com.pouillos.finddoctor.activities.AccueilActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.ajouter.AjouterLieuActivity"
+        <activity android:name="com.pouillos.finddoctor.activities.ajouter.AjouterLieuActivity"
             android:windowSoftInputMode="stateHidden"/>
-        <activity android:name=".activities.ajouter.AjouterLieuEnregistreActivity"
+        <activity android:name="com.pouillos.finddoctor.activities.ajouter.AjouterLieuEnregistreActivity"
             android:windowSoftInputMode="stateHidden"/>
 
     </application>

@@ -55,6 +55,37 @@
             android:onClick="importContact"
             android:text="Import Contact" />
 
+        <TextView
+            android:id="@+id/textNbContact"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal" />
+
+        <Button
+            android:id="@+id/btnImportEtablissement"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dip"
+            android:layout_marginBottom="10dip"
+            android:onClick="importEtablissement"
+            android:text="Import Etablissement" />
+
+        <TextView
+            android:id="@+id/textNbEtablissement"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal" />
+
+        <Button
+            android:id="@+id/btnRaz"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dip"
+            android:layout_marginBottom="10dip"
+            android:onClick="razDb"
+            android:text="Raz DB" />
     </LinearLayout>
 
     <LinearLayout

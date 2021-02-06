@@ -5,6 +5,92 @@
     <string name="home">Accueil</string>
 
     <string name="text_name">Nom</string>
+    <string name="text_no_matching">Aucune correspondance</string>
+    <string name="text_note">Note</string>
+    <string name="text_job">Métier</string>
+    <string name="text_place">Lieu</string>
+    <string name="text_complement">Complément</string>
+    <string name="text_num_street">N° Rue</string>
+    <string name="text_zip">CP</string>
+    <string name="text_town">Ville</string>
+    <string name="text_phone">Tél</string>
+    <string name="text_fax">Fax</string>
+    <string name="text_email">email</string>
+    <string name="text_search_contact">Chercher Contact</string>
+    <string name="select">Sélectionner</string>
+    <string name="dialog_delete_title">Suppression</string>
+    <string name="dialog_delete_message">Attention ! La suppression est définitive</string>
+    <string name="dialog_delete_negative">Refuser</string>
+    <string name="dialog_delete_positive">Accepter</string>
+    <string name="dialog_delete_negative_toast">La suppression a été annulée</string>
+    <string name="dialog_delete_positive_toast">La suppression a été effectuée</string>
+    <string name="dialog_overwrite_title">Remplacement</string>
+    <string name="dialog_overwrite_message">Attention ! Un profil existe déjà à cette date. Voulez-vous le remplacer ?</string>
+    <string name="dialog_overwrite_negative">Refuser</string>
+    <string name="dialog_overwrite_positive">Accepter</string>
+    <string name="dialog_overwrite_negative_toast">Le Remplacement a été annulée</string>
+    <string name="dialog_overwrite_positive_toast">Le Remplacement a été effectuée</string>
+
+
+    <string name="title_connexion">Connexion</string>
+    <string name="text_change_account">Changer de compte</string>
+    <string name="id_user">userId</string>
+
+    <string name="welcome">Bienvenue</string>
+
+
+    <string name="format_date">dd/MM/yy</string>
+
+    <string name="error">error</string>
+    <string name="text_no_validation">Saisie non valide</string>
+    <string name="text_already_exist">Déjà existant</string>
+
+    <string name="text_firstname">Prenom</string>
+    <string name="text_doctor">Titre</string>
+    <string name="text_birthday">Naissance</string>
+    <string name="text_date">Date</string>
+    <string name="text_heure">Heure</string>
+    <string name="text_man">Homme</string>
+    <string name="text_woman">Femme</string>
+    <string name="text_departement">Departement</string>
+    <string name="text_needed">Obligatoire</string>
+    <string name="text_imc">Imc</string>
+    <string name="text_taille">Taille</string>
+    <string name="text_poids">Poids</string>
+    <string name="text_my_profile">Mon profil</string>
+    <string name="text_my_account">Mon compte</string>
+    <string name="text_contact">Contact</string>
+    <string name="text_my_datas">Mes Données</string>
+    <string name="text_my_appointments">Mes Rendez-vous</string>
+
+
+
+    <!-- Used in NavigationDrawer -->
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="text_DB_created">Creation BD terminée</string>
+    <string name="text_my_contacts">Mes Contacts</string>
+
+    <string name="modification_saved">Modification Sauvegardée</string>
+    <string name="my_meeting">Mon Rdv</string>
+    <string name="not_valid">invalide</string>
+    <string name="not_valid_five_digits">invalide (5 chiffres)</string>
+    <string name="not_valid_ten_digits">invalide (10 chiffres)</string>
+    <string name="evolution">Evolution</string>
+    <string name="my_analysis">Mes Analyses</string>
+    <string name="my_exams">Mes Examens</string>
+    <string name="add_meeting_analysis">+Rdv Analyse</string>
+    <string name="add_meeting_exam">+Rdv Examen</string>
+    <string name="add_exam">+ Examen</string>
+    <string name="add_analyse">+ Analyse</string>
+    <string name="list_all_exam">lister Examens</string>
+    <string name="list_all_analysis">lister Analyses</string>
+    <string name="list_my_profil">lister Profils</string>
+    <string name="take_a_picture">prendre une photo</string>
+    <string name="analysis">Analyse</string>
+
+
+
 
 
     <!-- Used in NavigationDrawer -->

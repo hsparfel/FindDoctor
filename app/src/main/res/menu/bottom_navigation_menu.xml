@@ -5,13 +5,13 @@
         android:icon="@drawable/outline_home_black_24dp"
         android:title="@string/home"/>
     <item
-        android:id="@+id/bottom_navigation_add_lieu"
+        android:id="@+id/bottom_navigation_search_doctor"
         android:enabled="true"
-        android:icon="@drawable/icons8_garage2"
-        android:title="+ Lieu"/>
+        android:icon="@drawable/icons8_medecin_50"
+        android:title="Docteur"/>
     <item
-        android:id="@+id/bottom_navigation_add_lieu_enregistre"
+        android:id="@+id/bottom_navigation_search_etablissement"
         android:enabled="true"
-        android:icon="@drawable/outline_local_parking_black_18dp"
-        android:title="+ Lieu Enregistre"/>
+        android:icon="@drawable/big_hospital"
+        android:title="Etablissement"/>
 </menu>

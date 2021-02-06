@@ -91,7 +91,7 @@ public class AjouterLieuActivity extends NavDrawerActivity implements AdapterVie
 
         Menu bottomNavigationViewMenu = bottomNavigationView.getMenu();
         bottomNavigationViewMenu.findItem(R.id.bottom_navigation_home).setChecked(false);
-        bottomNavigationViewMenu.findItem(R.id.bottom_navigation_add_lieu).setChecked(true);
+        bottomNavigationViewMenu.findItem(R.id.bottom_navigation_search_doctor).setChecked(true);
 
         textView.setText(DateUtils.ecrireDateLettre(new Date()));
 

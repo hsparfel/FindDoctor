@@ -42,7 +42,7 @@ public class AjouterLieuEnregistreActivity extends NavDrawerActivity {
         Menu bottomNavigationViewMenu = bottomNavigationView.getMenu();
 
         bottomNavigationViewMenu.findItem(R.id.bottom_navigation_home).setChecked(false);
-        bottomNavigationViewMenu.findItem(R.id.bottom_navigation_add_lieu_enregistre).setChecked(true);
+        bottomNavigationViewMenu.findItem(R.id.bottom_navigation_search_etablissement).setChecked(true);
 
     }
 

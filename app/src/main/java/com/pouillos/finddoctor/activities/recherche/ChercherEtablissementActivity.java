@@ -503,8 +503,8 @@ public class ChercherEtablissementActivity extends NavDrawerActivity implements 
             booleanPharmacie=false;
             chipAutreType.setEnabled(false);
             booleanPharmacie=false;
-            listVille.setVisibility(View.GONE);
-            selectionVille.setText("",false);
+            //listVille.setVisibility(View.GONE);
+            //selectionVille.setText("",false);
             listeEtablissement.setVisibility(View.GONE);
         }
     }

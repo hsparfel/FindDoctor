@@ -1,9 +1,6 @@
 package com.pouillos.finddoctor.activities;
 
-import android.content.ActivityNotFoundException;
 import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -11,25 +8,19 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 
 import com.facebook.stetho.Stetho;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
 import com.pouillos.finddoctor.R;
 
 import com.pouillos.finddoctor.entities.Contact;
-import com.pouillos.finddoctor.entities.ContactLight;
+import com.pouillos.finddoctor.entities.ContactIgnore;
 import com.pouillos.finddoctor.entities.Departement;
 import com.pouillos.finddoctor.entities.Etablissement;
 import com.pouillos.finddoctor.entities.ImportContact;
 import com.pouillos.finddoctor.entities.ImportEtablissement;
-import com.pouillos.finddoctor.entities.Lieu;
-import com.pouillos.finddoctor.entities.LieuEnregistre;
 import com.pouillos.finddoctor.entities.Profession;
 import com.pouillos.finddoctor.entities.Region;
 import com.pouillos.finddoctor.entities.SavoirFaire;
@@ -47,7 +38,6 @@ import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
 import icepick.Icepick;
 
 public class AccueilActivity extends NavDrawerActivity {
@@ -86,19 +76,38 @@ public class AccueilActivity extends NavDrawerActivity {
         //decommenter les tables à raz
 
         //contactDao.deleteAll();
-      //  contactLightDao.deleteAll();
-        //   importContactDao.deleteAll();
+        //contactLightDao.deleteAll();
+
+           //importContactDao.deleteAll();
+
+        //delete contactIgnore si numLigne = 1
+        List<ContactIgnore> listContactIgnore = contactIgnoreDao.loadAll();
+        for (ContactIgnore current : listContactIgnore) {
+            if (current.getNumLigne() ==1) {
+                contactIgnoreDao.delete(current);
+            }
+        }
+
+        //delete importContact si termine et sans erreur
+        /*List<ImportContact> listAllImportContact = importContactDao.loadAll();
+        for (ImportContact current : listAllImportContact) {
+            if (current.getImportCompleted() && current.getNbImportIgnore() == 0
+                    && current.getNbImportEffectue() == 202) {
+                importContactDao.delete(current);
+            }
+        }*/
+
 
 
      //  etablissementDao.deleteAll();
       //  importEtablissementDao.deleteAll();
 
         //moins critique
-        professionDao.deleteAll();
-        regionDao.deleteAll();
-        savoirFaireDao.deleteAll();
-        typeEtablissementDao.deleteAll();
-        departementDao.deleteAll();
+        //professionDao.deleteAll();
+       // regionDao.deleteAll();
+       // savoirFaireDao.deleteAll();
+     //   typeEtablissementDao.deleteAll();
+      //  departementDao.deleteAll();
     }
 
     public void importContact(View view) {
@@ -345,6 +354,8 @@ public class AccueilActivity extends NavDrawerActivity {
             int nbImportIgnore = 0;
             int readerCount=0;
             int nbLigneLue=0;
+            //long cptrContactIgnore = 0l;
+            long cptrContactIgnore = contactIgnoreDao.count();
 
             for (ImportContact current : listImportContact) {
                 nbImportEffectue =0;
@@ -371,9 +382,10 @@ public class AccueilActivity extends NavDrawerActivity {
                     String line = null;
 
 
-                    int readerSize = 5000;
+                    int readerSize = 20000;
                     readerCount = 0;
                     int compteur = 0;
+
                     publishProgress(compteur);
                     while ((line = reader.readLine()) != null) {
                         if (readerCount<nbLigneLue) {
@@ -393,18 +405,22 @@ public class AccueilActivity extends NavDrawerActivity {
                             current.setNbLigneLue(nbLigneLue);
                             //current.save();
                             importContactDao.update(current);
+                            ContactIgnore contactIgnore = new ContactIgnore(cptrContactIgnore,lineSplitted[1],current.getPath(),nbLigneLue);
+                            contactIgnoreDao.insert(contactIgnore);
+                            cptrContactIgnore++;
                             continue;
                         }
 
                         Contact contact = new Contact();
-                        ContactLight contactLight = new ContactLight();
+                        //ContactLight contactLight = new ContactLight();
                         contact.setIdPP(lineSplitted[2]);
                         contact.setCodeCivilite(lineSplitted[3]);
                         contact.setNom(lineSplitted[7].toUpperCase());
+                        String prenom = "";
                         if (lineSplitted[8].length()>1) {
-                            String prenom = lineSplitted[8].substring(0,1).toUpperCase()+lineSplitted[8].substring(1,lineSplitted[8].length()-1).toLowerCase();
+                            prenom = lineSplitted[8].substring(0,1).toUpperCase()+lineSplitted[8].substring(1,lineSplitted[8].length()-1).toLowerCase();
                         }
-                        contact.setPrenom(lineSplitted[8]);
+                        contact.setPrenom(prenom);
                         contact.setProfession(mapProfession.get(lineSplitted[10]));
 
                         /*if (lineSplitted[16].equals("Qualifié en Médecine Générale") || lineSplitted[16].equals("Spécialiste en Médecine Générale")) {
@@ -459,10 +475,14 @@ public class AccueilActivity extends NavDrawerActivity {
                                 contact.setCp(lineSplitted[34].substring(0,5));
                                 contact.setVille(lineSplitted[34].substring(6));
                                 //todo modif ici si je veux supprimer cedex, cedex 1, cedex 20 etc ...
+                                if (contact.getVille().contains("CEDEX")) {
+                                    for (int i=100;i>=0;i--){
+                                        contact.setVille(contact.getVille().replace("CEDEX "+i,""));
+                                    }
+                                    contact.setVille(contact.getVille().replace("CEDEX ",""));
+                                    contact.setVille(contact.getVille().replace("CEDEX",""));
+                                }
                             }
-
-
-
                         } else {
                             contact.setCp("");
                         }
@@ -491,15 +511,29 @@ public class AccueilActivity extends NavDrawerActivity {
                         }
 
                        // List<ContactLight> listContactLight = ContactLight.find(ContactLight.class, "id_pp = ?",lineSplitted[2]);
-                        List<ContactLight> listContactLight = contactLightDao.queryRaw("where id_pp = ?",lineSplitted[2]);
-
-                        if (listContactLight.size()>0) {
+                        //List<ContactLight> listContactLight = contactLightDao.queryRaw("where id_pp = ?",lineSplitted[2]);
+                        List<Contact> listContact = contactDao.queryRaw("where id_pp = ?",lineSplitted[2]);
+                       // if (listContactLight.size()>0) {
+                        if (listContact.size()>0) {
 
                             boolean bool = false;
-                            for (ContactLight currentContactLight : listContactLight){
-                                if (comparer(currentContactLight, contact)){
+                            //for (ContactLight currentContactLight : listContactLight){
+                            for (Contact currentContact : listContact){
+                                //if (comparer(currentContactLight, contact)){
+                                if (comparer(currentContact,contact)) {
                                     Log.i("existant","medecin deja cree: "+lineSplitted[2]);
                                     bool = true;
+                                    cptrContactIgnore++;
+                                    nbLigneLue++;
+                                    current.setNbLigneLue(nbLigneLue);
+                                    //current.save();
+                                    //importContactDao.update(current);
+                                    ContactIgnore contactIgnore = new ContactIgnore(cptrContactIgnore,lineSplitted[1],current.getPath(),nbLigneLue);
+                                    contactIgnoreDao.insert(contactIgnore);
+
+                                    nbImportIgnore++;
+                                    current.setNbImportIgnore(nbImportIgnore);
+                                    importContactDao.update(current);
                                     continue;
                                 }
                             }
@@ -512,7 +546,7 @@ public class AccueilActivity extends NavDrawerActivity {
                         }
                         Log.i("enregistre","medecin new: "+lineSplitted[2]);
                         //contact.save();
-                        contactLight.setIdPP(contact.getIdPP());
+                        /*contactLight.setIdPP(contact.getIdPP());
                         contactLight.setAdresse(contact.getAdresse());
                         contactLight.setCodeCivilite(contact.getCodeCivilite());
                         contactLight.setComplement(contact.getComplement());
@@ -525,10 +559,10 @@ public class AccueilActivity extends NavDrawerActivity {
                         contactLight.setPrenom(contact.getPrenom());
                         contactLight.setRaisonSocial(contact.getRaisonSocial());
                         contactLight.setTelephone(contact.getTelephone());
-                        contactLight.setVille(contact.getVille());
+                        contactLight.setVille(contact.getVille());*/
 
                         contactDao.insert(contact);
-                        contactLightDao.insert(contactLight);
+                        //contactLightDao.insert(contactLight);
                         nbLigneLue++;
                         nbImportEffectue++;
                         current.setNbLigneLue(nbLigneLue);
@@ -634,429 +668,10 @@ public class AccueilActivity extends NavDrawerActivity {
        // Long count = ImportContact.count(ImportContact.class);
         Long count = importContactDao.count();
         if (count == 0) {
-            importContactDao.insert(new ImportContact(0l,"PS_LibreAcces_Personne_activite_202102020955_0.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(1l,"PS_LibreAcces_Personne_activite_202102020955_1.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(2l,"PS_LibreAcces_Personne_activite_202102020955_2.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(3l,"PS_LibreAcces_Personne_activite_202102020955_3.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(4l,"PS_LibreAcces_Personne_activite_202102020955_4.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(5l,"PS_LibreAcces_Personne_activite_202102020955_5.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(6l,"PS_LibreAcces_Personne_activite_202102020955_6.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(7l,"PS_LibreAcces_Personne_activite_202102020955_7.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(8l,"PS_LibreAcces_Personne_activite_202102020955_8.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(9l,"PS_LibreAcces_Personne_activite_202102020955_9.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(10l,"PS_LibreAcces_Personne_activite_202102020955_10.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(11l,"PS_LibreAcces_Personne_activite_202102020955_11.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(12l,"PS_LibreAcces_Personne_activite_202102020955_12.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(13l,"PS_LibreAcces_Personne_activite_202102020955_13.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(14l,"PS_LibreAcces_Personne_activite_202102020955_14.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(15l,"PS_LibreAcces_Personne_activite_202102020955_15.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(16l,"PS_LibreAcces_Personne_activite_202102020955_16.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(17l,"PS_LibreAcces_Personne_activite_202102020955_17.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(18l,"PS_LibreAcces_Personne_activite_202102020955_18.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(19l,"PS_LibreAcces_Personne_activite_202102020955_19.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(20l,"PS_LibreAcces_Personne_activite_202102020955_20.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(21l,"PS_LibreAcces_Personne_activite_202102020955_21.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(22l,"PS_LibreAcces_Personne_activite_202102020955_22.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(23l,"PS_LibreAcces_Personne_activite_202102020955_23.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(24l,"PS_LibreAcces_Personne_activite_202102020955_24.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(25l,"PS_LibreAcces_Personne_activite_202102020955_25.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(26l,"PS_LibreAcces_Personne_activite_202102020955_26.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(27l,"PS_LibreAcces_Personne_activite_202102020955_27.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(28l,"PS_LibreAcces_Personne_activite_202102020955_28.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(29l,"PS_LibreAcces_Personne_activite_202102020955_29.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(30l,"PS_LibreAcces_Personne_activite_202102020955_30.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(31l,"PS_LibreAcces_Personne_activite_202102020955_31.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(32l,"PS_LibreAcces_Personne_activite_202102020955_32.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(33l,"PS_LibreAcces_Personne_activite_202102020955_33.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(34l,"PS_LibreAcces_Personne_activite_202102020955_34.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(35l,"PS_LibreAcces_Personne_activite_202102020955_35.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(36l,"PS_LibreAcces_Personne_activite_202102020955_36.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(37l,"PS_LibreAcces_Personne_activite_202102020955_37.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(38l,"PS_LibreAcces_Personne_activite_202102020955_38.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(39l,"PS_LibreAcces_Personne_activite_202102020955_39.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(40l,"PS_LibreAcces_Personne_activite_202102020955_40.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(41l,"PS_LibreAcces_Personne_activite_202102020955_41.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(42l,"PS_LibreAcces_Personne_activite_202102020955_42.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(43l,"PS_LibreAcces_Personne_activite_202102020955_43.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(44l,"PS_LibreAcces_Personne_activite_202102020955_44.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(45l,"PS_LibreAcces_Personne_activite_202102020955_45.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(46l,"PS_LibreAcces_Personne_activite_202102020955_46.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(47l,"PS_LibreAcces_Personne_activite_202102020955_47.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(48l,"PS_LibreAcces_Personne_activite_202102020955_48.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(49l,"PS_LibreAcces_Personne_activite_202102020955_49.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(50l,"PS_LibreAcces_Personne_activite_202102020955_50.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(51l,"PS_LibreAcces_Personne_activite_202102020955_51.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(52l,"PS_LibreAcces_Personne_activite_202102020955_52.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(53l,"PS_LibreAcces_Personne_activite_202102020955_53.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(54l,"PS_LibreAcces_Personne_activite_202102020955_54.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(55l,"PS_LibreAcces_Personne_activite_202102020955_55.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(56l,"PS_LibreAcces_Personne_activite_202102020955_56.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(57l,"PS_LibreAcces_Personne_activite_202102020955_57.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(58l,"PS_LibreAcces_Personne_activite_202102020955_58.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(59l,"PS_LibreAcces_Personne_activite_202102020955_59.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(60l,"PS_LibreAcces_Personne_activite_202102020955_60.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(61l,"PS_LibreAcces_Personne_activite_202102020955_61.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(62l,"PS_LibreAcces_Personne_activite_202102020955_62.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(63l,"PS_LibreAcces_Personne_activite_202102020955_63.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(64l,"PS_LibreAcces_Personne_activite_202102020955_64.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(65l,"PS_LibreAcces_Personne_activite_202102020955_65.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(66l,"PS_LibreAcces_Personne_activite_202102020955_66.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(67l,"PS_LibreAcces_Personne_activite_202102020955_67.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(68l,"PS_LibreAcces_Personne_activite_202102020955_68.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(69l,"PS_LibreAcces_Personne_activite_202102020955_69.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(70l,"PS_LibreAcces_Personne_activite_202102020955_70.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(71l,"PS_LibreAcces_Personne_activite_202102020955_71.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(72l,"PS_LibreAcces_Personne_activite_202102020955_72.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(73l,"PS_LibreAcces_Personne_activite_202102020955_73.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(74l,"PS_LibreAcces_Personne_activite_202102020955_74.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(75l,"PS_LibreAcces_Personne_activite_202102020955_75.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(76l,"PS_LibreAcces_Personne_activite_202102020955_76.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(77l,"PS_LibreAcces_Personne_activite_202102020955_77.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(78l,"PS_LibreAcces_Personne_activite_202102020955_78.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(79l,"PS_LibreAcces_Personne_activite_202102020955_79.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(80l,"PS_LibreAcces_Personne_activite_202102020955_80.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(81l,"PS_LibreAcces_Personne_activite_202102020955_81.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(82l,"PS_LibreAcces_Personne_activite_202102020955_82.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(83l,"PS_LibreAcces_Personne_activite_202102020955_83.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(84l,"PS_LibreAcces_Personne_activite_202102020955_84.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(85l,"PS_LibreAcces_Personne_activite_202102020955_85.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(86l,"PS_LibreAcces_Personne_activite_202102020955_86.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(87l,"PS_LibreAcces_Personne_activite_202102020955_87.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(88l,"PS_LibreAcces_Personne_activite_202102020955_88.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(89l,"PS_LibreAcces_Personne_activite_202102020955_89.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(90l,"PS_LibreAcces_Personne_activite_202102020955_90.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(91l,"PS_LibreAcces_Personne_activite_202102020955_91.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(92l,"PS_LibreAcces_Personne_activite_202102020955_92.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(93l,"PS_LibreAcces_Personne_activite_202102020955_93.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(94l,"PS_LibreAcces_Personne_activite_202102020955_94.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(95l,"PS_LibreAcces_Personne_activite_202102020955_95.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(96l,"PS_LibreAcces_Personne_activite_202102020955_96.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(97l,"PS_LibreAcces_Personne_activite_202102020955_97.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(98l,"PS_LibreAcces_Personne_activite_202102020955_98.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(99l,"PS_LibreAcces_Personne_activite_202102020955_99.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(100l,"PS_LibreAcces_Personne_activite_202102020955_100.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(101l,"PS_LibreAcces_Personne_activite_202102020955_101.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(102l,"PS_LibreAcces_Personne_activite_202102020955_102.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(103l,"PS_LibreAcces_Personne_activite_202102020955_103.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(104l,"PS_LibreAcces_Personne_activite_202102020955_104.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(105l,"PS_LibreAcces_Personne_activite_202102020955_105.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(106l,"PS_LibreAcces_Personne_activite_202102020955_106.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(107l,"PS_LibreAcces_Personne_activite_202102020955_107.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(108l,"PS_LibreAcces_Personne_activite_202102020955_108.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(109l,"PS_LibreAcces_Personne_activite_202102020955_109.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(110l,"PS_LibreAcces_Personne_activite_202102020955_110.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(111l,"PS_LibreAcces_Personne_activite_202102020955_111.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(112l,"PS_LibreAcces_Personne_activite_202102020955_112.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(113l,"PS_LibreAcces_Personne_activite_202102020955_113.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(114l,"PS_LibreAcces_Personne_activite_202102020955_114.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(115l,"PS_LibreAcces_Personne_activite_202102020955_115.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(116l,"PS_LibreAcces_Personne_activite_202102020955_116.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(117l,"PS_LibreAcces_Personne_activite_202102020955_117.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(118l,"PS_LibreAcces_Personne_activite_202102020955_118.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(119l,"PS_LibreAcces_Personne_activite_202102020955_119.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(120l,"PS_LibreAcces_Personne_activite_202102020955_120.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(121l,"PS_LibreAcces_Personne_activite_202102020955_121.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(122l,"PS_LibreAcces_Personne_activite_202102020955_122.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(123l,"PS_LibreAcces_Personne_activite_202102020955_123.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(124l,"PS_LibreAcces_Personne_activite_202102020955_124.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(125l,"PS_LibreAcces_Personne_activite_202102020955_125.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(126l,"PS_LibreAcces_Personne_activite_202102020955_126.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(127l,"PS_LibreAcces_Personne_activite_202102020955_127.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(128l,"PS_LibreAcces_Personne_activite_202102020955_128.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(129l,"PS_LibreAcces_Personne_activite_202102020955_129.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(130l,"PS_LibreAcces_Personne_activite_202102020955_130.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(131l,"PS_LibreAcces_Personne_activite_202102020955_131.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(132l,"PS_LibreAcces_Personne_activite_202102020955_132.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(133l,"PS_LibreAcces_Personne_activite_202102020955_133.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(134l,"PS_LibreAcces_Personne_activite_202102020955_134.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(135l,"PS_LibreAcces_Personne_activite_202102020955_135.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(136l,"PS_LibreAcces_Personne_activite_202102020955_136.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(137l,"PS_LibreAcces_Personne_activite_202102020955_137.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(138l,"PS_LibreAcces_Personne_activite_202102020955_138.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(139l,"PS_LibreAcces_Personne_activite_202102020955_139.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(140l,"PS_LibreAcces_Personne_activite_202102020955_140.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(141l,"PS_LibreAcces_Personne_activite_202102020955_141.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(142l,"PS_LibreAcces_Personne_activite_202102020955_142.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(143l,"PS_LibreAcces_Personne_activite_202102020955_143.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(144l,"PS_LibreAcces_Personne_activite_202102020955_144.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(145l,"PS_LibreAcces_Personne_activite_202102020955_145.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(146l,"PS_LibreAcces_Personne_activite_202102020955_146.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(147l,"PS_LibreAcces_Personne_activite_202102020955_147.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(148l,"PS_LibreAcces_Personne_activite_202102020955_148.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(149l,"PS_LibreAcces_Personne_activite_202102020955_149.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(150l,"PS_LibreAcces_Personne_activite_202102020955_150.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(151l,"PS_LibreAcces_Personne_activite_202102020955_151.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(152l,"PS_LibreAcces_Personne_activite_202102020955_152.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(153l,"PS_LibreAcces_Personne_activite_202102020955_153.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(154l,"PS_LibreAcces_Personne_activite_202102020955_154.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(155l,"PS_LibreAcces_Personne_activite_202102020955_155.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(156l,"PS_LibreAcces_Personne_activite_202102020955_156.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(157l,"PS_LibreAcces_Personne_activite_202102020955_157.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(158l,"PS_LibreAcces_Personne_activite_202102020955_158.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(159l,"PS_LibreAcces_Personne_activite_202102020955_159.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(160l,"PS_LibreAcces_Personne_activite_202102020955_160.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(161l,"PS_LibreAcces_Personne_activite_202102020955_161.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(162l,"PS_LibreAcces_Personne_activite_202102020955_162.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(163l,"PS_LibreAcces_Personne_activite_202102020955_163.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(164l,"PS_LibreAcces_Personne_activite_202102020955_164.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(165l,"PS_LibreAcces_Personne_activite_202102020955_165.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(166l,"PS_LibreAcces_Personne_activite_202102020955_166.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(167l,"PS_LibreAcces_Personne_activite_202102020955_167.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(168l,"PS_LibreAcces_Personne_activite_202102020955_168.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(169l,"PS_LibreAcces_Personne_activite_202102020955_169.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(170l,"PS_LibreAcces_Personne_activite_202102020955_170.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(171l,"PS_LibreAcces_Personne_activite_202102020955_171.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(172l,"PS_LibreAcces_Personne_activite_202102020955_172.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(173l,"PS_LibreAcces_Personne_activite_202102020955_173.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(174l,"PS_LibreAcces_Personne_activite_202102020955_174.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(175l,"PS_LibreAcces_Personne_activite_202102020955_175.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(176l,"PS_LibreAcces_Personne_activite_202102020955_176.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(177l,"PS_LibreAcces_Personne_activite_202102020955_177.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(178l,"PS_LibreAcces_Personne_activite_202102020955_178.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(179l,"PS_LibreAcces_Personne_activite_202102020955_179.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(180l,"PS_LibreAcces_Personne_activite_202102020955_180.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(181l,"PS_LibreAcces_Personne_activite_202102020955_181.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(182l,"PS_LibreAcces_Personne_activite_202102020955_182.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(183l,"PS_LibreAcces_Personne_activite_202102020955_183.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(184l,"PS_LibreAcces_Personne_activite_202102020955_184.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(185l,"PS_LibreAcces_Personne_activite_202102020955_185.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(186l,"PS_LibreAcces_Personne_activite_202102020955_186.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(187l,"PS_LibreAcces_Personne_activite_202102020955_187.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(188l,"PS_LibreAcces_Personne_activite_202102020955_188.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(189l,"PS_LibreAcces_Personne_activite_202102020955_189.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(190l,"PS_LibreAcces_Personne_activite_202102020955_190.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(191l,"PS_LibreAcces_Personne_activite_202102020955_191.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(192l,"PS_LibreAcces_Personne_activite_202102020955_192.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(193l,"PS_LibreAcces_Personne_activite_202102020955_193.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(194l,"PS_LibreAcces_Personne_activite_202102020955_194.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(195l,"PS_LibreAcces_Personne_activite_202102020955_195.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(196l,"PS_LibreAcces_Personne_activite_202102020955_196.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(197l,"PS_LibreAcces_Personne_activite_202102020955_197.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(198l,"PS_LibreAcces_Personne_activite_202102020955_198.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(199l,"PS_LibreAcces_Personne_activite_202102020955_199.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(200l,"PS_LibreAcces_Personne_activite_202102020955_200.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(201l,"PS_LibreAcces_Personne_activite_202102020955_201.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(202l,"PS_LibreAcces_Personne_activite_202102020955_202.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(203l,"PS_LibreAcces_Personne_activite_202102020955_203.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(204l,"PS_LibreAcces_Personne_activite_202102020955_204.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(205l,"PS_LibreAcces_Personne_activite_202102020955_205.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(206l,"PS_LibreAcces_Personne_activite_202102020955_206.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(207l,"PS_LibreAcces_Personne_activite_202102020955_207.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(208l,"PS_LibreAcces_Personne_activite_202102020955_208.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(209l,"PS_LibreAcces_Personne_activite_202102020955_209.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(210l,"PS_LibreAcces_Personne_activite_202102020955_210.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(211l,"PS_LibreAcces_Personne_activite_202102020955_211.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(212l,"PS_LibreAcces_Personne_activite_202102020955_212.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(213l,"PS_LibreAcces_Personne_activite_202102020955_213.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(214l,"PS_LibreAcces_Personne_activite_202102020955_214.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(215l,"PS_LibreAcces_Personne_activite_202102020955_215.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(216l,"PS_LibreAcces_Personne_activite_202102020955_216.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(217l,"PS_LibreAcces_Personne_activite_202102020955_217.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(218l,"PS_LibreAcces_Personne_activite_202102020955_218.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(219l,"PS_LibreAcces_Personne_activite_202102020955_219.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(220l,"PS_LibreAcces_Personne_activite_202102020955_220.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(221l,"PS_LibreAcces_Personne_activite_202102020955_221.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(222l,"PS_LibreAcces_Personne_activite_202102020955_222.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(223l,"PS_LibreAcces_Personne_activite_202102020955_223.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(224l,"PS_LibreAcces_Personne_activite_202102020955_224.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(225l,"PS_LibreAcces_Personne_activite_202102020955_225.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(226l,"PS_LibreAcces_Personne_activite_202102020955_226.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(227l,"PS_LibreAcces_Personne_activite_202102020955_227.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(228l,"PS_LibreAcces_Personne_activite_202102020955_228.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(229l,"PS_LibreAcces_Personne_activite_202102020955_229.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(230l,"PS_LibreAcces_Personne_activite_202102020955_230.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(231l,"PS_LibreAcces_Personne_activite_202102020955_231.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(232l,"PS_LibreAcces_Personne_activite_202102020955_232.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(233l,"PS_LibreAcces_Personne_activite_202102020955_233.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(234l,"PS_LibreAcces_Personne_activite_202102020955_234.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(235l,"PS_LibreAcces_Personne_activite_202102020955_235.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(236l,"PS_LibreAcces_Personne_activite_202102020955_236.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(237l,"PS_LibreAcces_Personne_activite_202102020955_237.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(238l,"PS_LibreAcces_Personne_activite_202102020955_238.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(239l,"PS_LibreAcces_Personne_activite_202102020955_239.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(240l,"PS_LibreAcces_Personne_activite_202102020955_240.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(241l,"PS_LibreAcces_Personne_activite_202102020955_241.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(242l,"PS_LibreAcces_Personne_activite_202102020955_242.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(243l,"PS_LibreAcces_Personne_activite_202102020955_243.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(244l,"PS_LibreAcces_Personne_activite_202102020955_244.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(245l,"PS_LibreAcces_Personne_activite_202102020955_245.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(246l,"PS_LibreAcces_Personne_activite_202102020955_246.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(247l,"PS_LibreAcces_Personne_activite_202102020955_247.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(248l,"PS_LibreAcces_Personne_activite_202102020955_248.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(249l,"PS_LibreAcces_Personne_activite_202102020955_249.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(250l,"PS_LibreAcces_Personne_activite_202102020955_250.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(251l,"PS_LibreAcces_Personne_activite_202102020955_251.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(252l,"PS_LibreAcces_Personne_activite_202102020955_252.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(253l,"PS_LibreAcces_Personne_activite_202102020955_253.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(254l,"PS_LibreAcces_Personne_activite_202102020955_254.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(255l,"PS_LibreAcces_Personne_activite_202102020955_255.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(256l,"PS_LibreAcces_Personne_activite_202102020955_256.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(257l,"PS_LibreAcces_Personne_activite_202102020955_257.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(258l,"PS_LibreAcces_Personne_activite_202102020955_258.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(259l,"PS_LibreAcces_Personne_activite_202102020955_259.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(260l,"PS_LibreAcces_Personne_activite_202102020955_260.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(261l,"PS_LibreAcces_Personne_activite_202102020955_261.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(262l,"PS_LibreAcces_Personne_activite_202102020955_262.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(263l,"PS_LibreAcces_Personne_activite_202102020955_263.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(264l,"PS_LibreAcces_Personne_activite_202102020955_264.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(265l,"PS_LibreAcces_Personne_activite_202102020955_265.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(266l,"PS_LibreAcces_Personne_activite_202102020955_266.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(267l,"PS_LibreAcces_Personne_activite_202102020955_267.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(268l,"PS_LibreAcces_Personne_activite_202102020955_268.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(269l,"PS_LibreAcces_Personne_activite_202102020955_269.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(270l,"PS_LibreAcces_Personne_activite_202102020955_270.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(271l,"PS_LibreAcces_Personne_activite_202102020955_271.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(272l,"PS_LibreAcces_Personne_activite_202102020955_272.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(273l,"PS_LibreAcces_Personne_activite_202102020955_273.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(274l,"PS_LibreAcces_Personne_activite_202102020955_274.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(275l,"PS_LibreAcces_Personne_activite_202102020955_275.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(276l,"PS_LibreAcces_Personne_activite_202102020955_276.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(277l,"PS_LibreAcces_Personne_activite_202102020955_277.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(278l,"PS_LibreAcces_Personne_activite_202102020955_278.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(279l,"PS_LibreAcces_Personne_activite_202102020955_279.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(280l,"PS_LibreAcces_Personne_activite_202102020955_280.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(281l,"PS_LibreAcces_Personne_activite_202102020955_281.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(282l,"PS_LibreAcces_Personne_activite_202102020955_282.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(283l,"PS_LibreAcces_Personne_activite_202102020955_283.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(284l,"PS_LibreAcces_Personne_activite_202102020955_284.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(285l,"PS_LibreAcces_Personne_activite_202102020955_285.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(286l,"PS_LibreAcces_Personne_activite_202102020955_286.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(287l,"PS_LibreAcces_Personne_activite_202102020955_287.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(288l,"PS_LibreAcces_Personne_activite_202102020955_288.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(289l,"PS_LibreAcces_Personne_activite_202102020955_289.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(290l,"PS_LibreAcces_Personne_activite_202102020955_290.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(291l,"PS_LibreAcces_Personne_activite_202102020955_291.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(292l,"PS_LibreAcces_Personne_activite_202102020955_292.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(293l,"PS_LibreAcces_Personne_activite_202102020955_293.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(294l,"PS_LibreAcces_Personne_activite_202102020955_294.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(295l,"PS_LibreAcces_Personne_activite_202102020955_295.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(296l,"PS_LibreAcces_Personne_activite_202102020955_296.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(297l,"PS_LibreAcces_Personne_activite_202102020955_297.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(298l,"PS_LibreAcces_Personne_activite_202102020955_298.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(299l,"PS_LibreAcces_Personne_activite_202102020955_299.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(300l,"PS_LibreAcces_Personne_activite_202102020955_300.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(301l,"PS_LibreAcces_Personne_activite_202102020955_301.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(302l,"PS_LibreAcces_Personne_activite_202102020955_302.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(303l,"PS_LibreAcces_Personne_activite_202102020955_303.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(304l,"PS_LibreAcces_Personne_activite_202102020955_304.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(305l,"PS_LibreAcces_Personne_activite_202102020955_305.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(306l,"PS_LibreAcces_Personne_activite_202102020955_306.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(307l,"PS_LibreAcces_Personne_activite_202102020955_307.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(308l,"PS_LibreAcces_Personne_activite_202102020955_308.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(309l,"PS_LibreAcces_Personne_activite_202102020955_309.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(310l,"PS_LibreAcces_Personne_activite_202102020955_310.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(311l,"PS_LibreAcces_Personne_activite_202102020955_311.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(312l,"PS_LibreAcces_Personne_activite_202102020955_312.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(313l,"PS_LibreAcces_Personne_activite_202102020955_313.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(314l,"PS_LibreAcces_Personne_activite_202102020955_314.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(315l,"PS_LibreAcces_Personne_activite_202102020955_315.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(316l,"PS_LibreAcces_Personne_activite_202102020955_316.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(317l,"PS_LibreAcces_Personne_activite_202102020955_317.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(318l,"PS_LibreAcces_Personne_activite_202102020955_318.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(319l,"PS_LibreAcces_Personne_activite_202102020955_319.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(320l,"PS_LibreAcces_Personne_activite_202102020955_320.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(321l,"PS_LibreAcces_Personne_activite_202102020955_321.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(322l,"PS_LibreAcces_Personne_activite_202102020955_322.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(323l,"PS_LibreAcces_Personne_activite_202102020955_323.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(324l,"PS_LibreAcces_Personne_activite_202102020955_324.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(325l,"PS_LibreAcces_Personne_activite_202102020955_325.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(326l,"PS_LibreAcces_Personne_activite_202102020955_326.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(327l,"PS_LibreAcces_Personne_activite_202102020955_327.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(328l,"PS_LibreAcces_Personne_activite_202102020955_328.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(329l,"PS_LibreAcces_Personne_activite_202102020955_329.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(330l,"PS_LibreAcces_Personne_activite_202102020955_330.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(331l,"PS_LibreAcces_Personne_activite_202102020955_331.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(332l,"PS_LibreAcces_Personne_activite_202102020955_332.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(333l,"PS_LibreAcces_Personne_activite_202102020955_333.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(334l,"PS_LibreAcces_Personne_activite_202102020955_334.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(335l,"PS_LibreAcces_Personne_activite_202102020955_335.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(336l,"PS_LibreAcces_Personne_activite_202102020955_336.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(337l,"PS_LibreAcces_Personne_activite_202102020955_337.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(338l,"PS_LibreAcces_Personne_activite_202102020955_338.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(339l,"PS_LibreAcces_Personne_activite_202102020955_339.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(340l,"PS_LibreAcces_Personne_activite_202102020955_340.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(341l,"PS_LibreAcces_Personne_activite_202102020955_341.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(342l,"PS_LibreAcces_Personne_activite_202102020955_342.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(343l,"PS_LibreAcces_Personne_activite_202102020955_343.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(344l,"PS_LibreAcces_Personne_activite_202102020955_344.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(345l,"PS_LibreAcces_Personne_activite_202102020955_345.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(346l,"PS_LibreAcces_Personne_activite_202102020955_346.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(347l,"PS_LibreAcces_Personne_activite_202102020955_347.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(348l,"PS_LibreAcces_Personne_activite_202102020955_348.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(349l,"PS_LibreAcces_Personne_activite_202102020955_349.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(350l,"PS_LibreAcces_Personne_activite_202102020955_350.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(351l,"PS_LibreAcces_Personne_activite_202102020955_351.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(352l,"PS_LibreAcces_Personne_activite_202102020955_352.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(353l,"PS_LibreAcces_Personne_activite_202102020955_353.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(354l,"PS_LibreAcces_Personne_activite_202102020955_354.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(355l,"PS_LibreAcces_Personne_activite_202102020955_355.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(356l,"PS_LibreAcces_Personne_activite_202102020955_356.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(357l,"PS_LibreAcces_Personne_activite_202102020955_357.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(358l,"PS_LibreAcces_Personne_activite_202102020955_358.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(359l,"PS_LibreAcces_Personne_activite_202102020955_359.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(360l,"PS_LibreAcces_Personne_activite_202102020955_360.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(361l,"PS_LibreAcces_Personne_activite_202102020955_361.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(362l,"PS_LibreAcces_Personne_activite_202102020955_362.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(363l,"PS_LibreAcces_Personne_activite_202102020955_363.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(364l,"PS_LibreAcces_Personne_activite_202102020955_364.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(365l,"PS_LibreAcces_Personne_activite_202102020955_365.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(366l,"PS_LibreAcces_Personne_activite_202102020955_366.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(367l,"PS_LibreAcces_Personne_activite_202102020955_367.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(368l,"PS_LibreAcces_Personne_activite_202102020955_368.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(369l,"PS_LibreAcces_Personne_activite_202102020955_369.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(370l,"PS_LibreAcces_Personne_activite_202102020955_370.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(371l,"PS_LibreAcces_Personne_activite_202102020955_371.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(372l,"PS_LibreAcces_Personne_activite_202102020955_372.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(373l,"PS_LibreAcces_Personne_activite_202102020955_373.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(374l,"PS_LibreAcces_Personne_activite_202102020955_374.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(375l,"PS_LibreAcces_Personne_activite_202102020955_375.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(376l,"PS_LibreAcces_Personne_activite_202102020955_376.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(377l,"PS_LibreAcces_Personne_activite_202102020955_377.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(378l,"PS_LibreAcces_Personne_activite_202102020955_378.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(379l,"PS_LibreAcces_Personne_activite_202102020955_379.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(380l,"PS_LibreAcces_Personne_activite_202102020955_380.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(381l,"PS_LibreAcces_Personne_activite_202102020955_381.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(382l,"PS_LibreAcces_Personne_activite_202102020955_382.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(383l,"PS_LibreAcces_Personne_activite_202102020955_383.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(384l,"PS_LibreAcces_Personne_activite_202102020955_384.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(385l,"PS_LibreAcces_Personne_activite_202102020955_385.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(386l,"PS_LibreAcces_Personne_activite_202102020955_386.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(387l,"PS_LibreAcces_Personne_activite_202102020955_387.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(388l,"PS_LibreAcces_Personne_activite_202102020955_388.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(389l,"PS_LibreAcces_Personne_activite_202102020955_389.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(390l,"PS_LibreAcces_Personne_activite_202102020955_390.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(391l,"PS_LibreAcces_Personne_activite_202102020955_391.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(392l,"PS_LibreAcces_Personne_activite_202102020955_392.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(393l,"PS_LibreAcces_Personne_activite_202102020955_393.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(394l,"PS_LibreAcces_Personne_activite_202102020955_394.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(395l,"PS_LibreAcces_Personne_activite_202102020955_395.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(396l,"PS_LibreAcces_Personne_activite_202102020955_396.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(397l,"PS_LibreAcces_Personne_activite_202102020955_397.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(398l,"PS_LibreAcces_Personne_activite_202102020955_398.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(399l,"PS_LibreAcces_Personne_activite_202102020955_399.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(400l,"PS_LibreAcces_Personne_activite_202102020955_400.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(401l,"PS_LibreAcces_Personne_activite_202102020955_401.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(402l,"PS_LibreAcces_Personne_activite_202102020955_402.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(403l,"PS_LibreAcces_Personne_activite_202102020955_403.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(404l,"PS_LibreAcces_Personne_activite_202102020955_404.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(405l,"PS_LibreAcces_Personne_activite_202102020955_405.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(406l,"PS_LibreAcces_Personne_activite_202102020955_406.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(407l,"PS_LibreAcces_Personne_activite_202102020955_407.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(408l,"PS_LibreAcces_Personne_activite_202102020955_408.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(409l,"PS_LibreAcces_Personne_activite_202102020955_409.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(410l,"PS_LibreAcces_Personne_activite_202102020955_410.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(411l,"PS_LibreAcces_Personne_activite_202102020955_411.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(412l,"PS_LibreAcces_Personne_activite_202102020955_412.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(413l,"PS_LibreAcces_Personne_activite_202102020955_413.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(414l,"PS_LibreAcces_Personne_activite_202102020955_414.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(415l,"PS_LibreAcces_Personne_activite_202102020955_415.txt", false,"","",0,0,0));
-            importContactDao.insert(new ImportContact(416l,"PS_LibreAcces_Personne_activite_202102020955_416.txt", false,"","",0,0,0));
-
-
-
-
-
-
+            for (long i = 0l;i<105;i++) {
+                importContactDao.insert(new ImportContact(i, "PS_LibreAcces_Personne_activite_202102020955_"+(int) i+".txt", false, "", "", 0, 0, 0));
+                Log.i("enregistre","importContact: "+i);
+            }
         }
     }
 
@@ -1474,20 +1089,65 @@ public class AccueilActivity extends NavDrawerActivity {
         }
     }
 
-    private boolean comparer(ContactLight medecinLight, Contact medecin){
+
+
+    private boolean comparer(Contact medecin1, Contact medecin2){
         boolean bool = true;
-        if (medecinLight.getIdPP() != null && medecin.getIdPP() != null) {
-            bool = bool && medecinLight.getIdPP().equalsIgnoreCase(medecin.getIdPP());
+        if (medecin1.getIdPP() != null && medecin2.getIdPP() != null) {
+            bool = bool && medecin1.getIdPP().equalsIgnoreCase(medecin2.getIdPP());
         }
-        if (medecinLight.getAdresse() != null && medecin.getAdresse() != null) {
-            bool = bool && medecinLight.getAdresse().equalsIgnoreCase(medecin.getAdresse());
+        ///////
+        if (medecin1.getCodeCivilite() != null && medecin2.getCodeCivilite() != null) {
+            bool = bool && medecin1.getCodeCivilite().equalsIgnoreCase(medecin2.getCodeCivilite());
         }
-        if (medecinLight.getCp() != null && medecin.getCp() != null) {
-            bool = bool && medecinLight.getCp().equalsIgnoreCase(medecin.getCp());
+        if (medecin1.getNom() != null && medecin2.getNom() != null) {
+            bool = bool && medecin1.getNom().equalsIgnoreCase(medecin2.getNom());
         }
-        if (medecinLight.getVille() != null && medecin.getVille() != null) {
-            bool = bool && medecinLight.getVille().equalsIgnoreCase(medecin.getVille());
+        if (medecin1.getPrenom() != null && medecin2.getPrenom() != null) {
+            bool = bool && medecin1.getPrenom().equalsIgnoreCase(medecin2.getPrenom());
         }
+        if (medecin1.getProfession() != null && medecin2.getProfession() != null) {
+            bool = bool && (medecin1.getProfessionId() == (medecin2.getProfessionId()));
+        }
+        if (medecin1.getSavoirFaire() != null && medecin2.getSavoirFaire() != null) {
+            bool = bool && (medecin1.getSavoirFaireId() == (medecin2.getSavoirFaireId()));
+        }
+        if (medecin1.getRaisonSocial() != null && medecin2.getRaisonSocial() != null) {
+            bool = bool && medecin1.getRaisonSocial().equalsIgnoreCase(medecin2.getRaisonSocial());
+        }
+        if (medecin1.getComplement() != null && medecin2.getComplement() != null) {
+            bool = bool && medecin1.getComplement().equalsIgnoreCase(medecin2.getComplement());
+        }
+        if (medecin1.getAdresse() != null && medecin2.getAdresse() != null) {
+            bool = bool && medecin1.getAdresse().equalsIgnoreCase(medecin2.getAdresse());
+        }
+        if (medecin1.getCp() != null && medecin2.getCp() != null) {
+            bool = bool && medecin1.getCp().equalsIgnoreCase(medecin2.getCp());
+        }
+        if (medecin1.getVille() != null && medecin2.getVille() != null) {
+            bool = bool && medecin1.getVille().equalsIgnoreCase(medecin2.getVille());
+        }
+        if (medecin1.getTelephone() != null && medecin2.getTelephone() != null) {
+            bool = bool && medecin1.getTelephone().equalsIgnoreCase(medecin2.getTelephone());
+        }
+        if (medecin1.getFax() != null && medecin2.getFax() != null) {
+            bool = bool && medecin1.getFax().equalsIgnoreCase(medecin2.getFax());
+        }
+        if (medecin1.getEmail() != null && medecin2.getEmail() != null) {
+            bool = bool && medecin1.getEmail().equalsIgnoreCase(medecin2.getEmail());
+        }
+        if (medecin1.getDepartement() != null && medecin2.getDepartement() != null) {
+            bool = bool && (medecin1.getDepartementId() == (medecin2.getDepartementId()));
+        }
+        if (medecin1.getRegion() != null && medecin2.getRegion() != null) {
+            bool = bool && (medecin1.getRegionId() == (medecin2.getRegionId()));
+        }
+        //if (medecin1.getLatitude() != null && medecin2.getLatitude() != null) {
+            //bool = bool && (medecin1.getLatitude() == medecin2.getLatitude());
+        //}
+        //if (medecin1.getLongitude() != null && medecin2.getLongitude() != null) {
+            //bool = bool && (medecin1.getLongitude() == medecin2.getLongitude());
+        //}
         return bool;
     }
 

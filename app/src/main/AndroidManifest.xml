@@ -16,17 +16,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.pouillos.finddoctor.activities.ajouter.AjouterLieuActivity"
-            android:windowSoftInputMode="stateHidden"/>
-        <activity android:name="com.pouillos.finddoctor.activities.ajouter.AjouterLieuEnregistreActivity"
-            android:windowSoftInputMode="stateHidden"/>
         <activity android:name="com.pouillos.finddoctor.activities.recherche.ChercherEtablissementActivity"
             android:windowSoftInputMode="stateHidden"/>
         <activity android:name="com.pouillos.finddoctor.activities.recherche.ChercherContactActivity"
             android:windowSoftInputMode="stateHidden"/>
         <activity android:name="com.pouillos.finddoctor.activities.afficher.AfficherEtablissementActivity"
-            android:windowSoftInputMode="stateHidden"/>
+        android:windowSoftInputMode="stateHidden"/>
         <activity android:name="com.pouillos.finddoctor.activities.afficher.AfficherContactActivity"
+            android:windowSoftInputMode="stateHidden"/>
+        <activity android:name="com.pouillos.finddoctor.activities.afficher.AfficherMesEtablissementsActivity"
+            android:windowSoftInputMode="stateHidden"/>
+        <activity android:name="com.pouillos.finddoctor.activities.afficher.AfficherMesContactsActivity"
             android:windowSoftInputMode="stateHidden"/>
     </application>
 

@@ -3,6 +3,11 @@
 
 
     <string name="home">Accueil</string>
+    <string name="search_dr">Rch Dr</string>
+    <string name="search_etab">Rch Etablissement</string>
+    <string name="list_dr">List Dr</string>
+    <string name="list_etab">List Etablissement</string>
+
 
     <string name="text_name">Nom</string>
     <string name="text_no_matching">Aucune correspondance</string>

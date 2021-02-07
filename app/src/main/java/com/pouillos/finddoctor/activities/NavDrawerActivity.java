@@ -22,21 +22,20 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.pouillos.finddoctor.R;
-import com.pouillos.finddoctor.activities.ajouter.AjouterLieuActivity;
-import com.pouillos.finddoctor.activities.ajouter.AjouterLieuEnregistreActivity;
+import com.pouillos.finddoctor.activities.afficher.AfficherMesContactsActivity;
+import com.pouillos.finddoctor.activities.afficher.AfficherMesEtablissementsActivity;
 import com.pouillos.finddoctor.activities.recherche.ChercherContactActivity;
 import com.pouillos.finddoctor.activities.recherche.ChercherEtablissementActivity;
 import com.pouillos.finddoctor.dao.AppOpenHelper;
 import com.pouillos.finddoctor.dao.ContactDao;
-import com.pouillos.finddoctor.dao.ContactLightDao;
+import com.pouillos.finddoctor.dao.ContactIgnoreDao;
 import com.pouillos.finddoctor.dao.DaoMaster;
 import com.pouillos.finddoctor.dao.DaoSession;
 import com.pouillos.finddoctor.dao.DepartementDao;
 import com.pouillos.finddoctor.dao.EtablissementDao;
 import com.pouillos.finddoctor.dao.ImportContactDao;
 import com.pouillos.finddoctor.dao.ImportEtablissementDao;
-import com.pouillos.finddoctor.dao.LieuDao;
-import com.pouillos.finddoctor.dao.LieuEnregistreDao;
+
 import com.pouillos.finddoctor.dao.ProfessionDao;
 import com.pouillos.finddoctor.dao.RegionDao;
 import com.pouillos.finddoctor.dao.SavoirFaireDao;
@@ -63,19 +62,19 @@ public class NavDrawerActivity<T> extends AppCompatActivity {
 
     protected DaoSession daoSession;
 
-    protected LieuEnregistreDao lieuEnregistreDao;
+
     protected ContactDao contactDao;
-    protected ContactLightDao contactLightDao;
+
     protected DepartementDao departementDao;
     protected ImportContactDao importContactDao;
     protected ImportEtablissementDao importEtablissementDao;
     protected ProfessionDao professionDao;
     protected RegionDao regionDao;
     protected SavoirFaireDao savoirFaireDao;
-    protected LieuDao lieuDao;
+
     protected TypeEtablissementDao typeEtablissementDao;
     protected EtablissementDao etablissementDao;
-
+    protected ContactIgnoreDao contactIgnoreDao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,10 +82,9 @@ public class NavDrawerActivity<T> extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         //initialiser greenDAO
         initialiserDao();
-        lieuEnregistreDao = daoSession.getLieuEnregistreDao();
-        lieuDao = daoSession.getLieuDao();
+
         contactDao = daoSession.getContactDao();
-        contactLightDao = daoSession.getContactLightDao();
+
         departementDao = daoSession.getDepartementDao();
         importContactDao = daoSession.getImportContactDao();
         professionDao = daoSession.getProfessionDao();
@@ -95,6 +93,7 @@ public class NavDrawerActivity<T> extends AppCompatActivity {
         typeEtablissementDao = daoSession.getTypeEtablissementDao();
         etablissementDao = daoSession.getEtablissementDao();
         importEtablissementDao = daoSession.getImportEtablissementDao();
+        contactIgnoreDao = daoSession.getContactIgnoreDao();
     }
 
     @Override
@@ -142,6 +141,12 @@ public class NavDrawerActivity<T> extends AppCompatActivity {
                                 break;
                             case R.id.bottom_navigation_search_etablissement:
                                 ouvrirActiviteSuivante(NavDrawerActivity.this, ChercherEtablissementActivity.class, true);
+                                break;
+                            case R.id.bottom_navigation_list_doctor:
+                                ouvrirActiviteSuivante(NavDrawerActivity.this, AfficherMesContactsActivity.class, true);
+                                break;
+                            case R.id.bottom_navigation_list_etablissement:
+                                ouvrirActiviteSuivante(NavDrawerActivity.this, AfficherMesEtablissementsActivity.class, true);
                                 break;
                         }
                         return true;

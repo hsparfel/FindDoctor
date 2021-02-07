@@ -67,6 +67,8 @@ public class Contact implements Comparable<Contact>{
     private double latitude;
     private double longitude;
 
+    private boolean isSelected;
+
     /** Used to resolve relations */
     @Generated(hash = 2040040024)
     private transient DaoSession daoSession;
@@ -80,11 +82,14 @@ public class Contact implements Comparable<Contact>{
 
 
 
-    @Generated(hash = 1093952118)
-    public Contact(Long id, @NotNull String idPP, String codeCivilite, String nom, String prenom,
-            long professionId, long savoirFaireId, String raisonSocial, String complement, String adresse,
-            String cp, String ville, String telephone, String fax, String email, long departementId,
-            long regionId, double latitude, double longitude) {
+
+
+    @Generated(hash = 1103072865)
+    public Contact(Long id, @NotNull String idPP, String codeCivilite, String nom,
+            String prenom, long professionId, long savoirFaireId, String raisonSocial,
+            String complement, String adresse, String cp, String ville, String telephone,
+            String fax, String email, long departementId, long regionId, double latitude,
+            double longitude, boolean isSelected) {
         this.id = id;
         this.idPP = idPP;
         this.codeCivilite = codeCivilite;
@@ -104,6 +109,7 @@ public class Contact implements Comparable<Contact>{
         this.regionId = regionId;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.isSelected = isSelected;
     }
 
     @Generated(hash = 672515148)
@@ -127,18 +133,6 @@ public class Contact implements Comparable<Contact>{
 
 
 
-   /*public void setDepartementAndRegion() {
-
-        //this.cp = cp;
-        if (!this.cp.equalsIgnoreCase("")) {
-            this.departement = Departement.find(Departement.class,"numero = ?",cp.substring(0,2)).get(0);
-            this.departement = departementD
-        } else {
-            this.departement = Departement.find(Departement.class,"numero = ?","XX").get(0);
-
-        }
-        this.region = this.departement.getRegion();
-    }*/
 
 
     @Override
@@ -336,6 +330,14 @@ public class Contact implements Comparable<Contact>{
 
     public void setLongitude(double longitude) {
         this.longitude = longitude;
+    }
+
+    public boolean getIsSelected() {
+        return this.isSelected;
+    }
+
+    public void setIsSelected(boolean isSelected) {
+        this.isSelected = isSelected;
     }
 
     /** To-one relationship, resolved on first access. */

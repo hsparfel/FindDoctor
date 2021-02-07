@@ -8,10 +8,20 @@
         android:id="@+id/bottom_navigation_search_doctor"
         android:enabled="true"
         android:icon="@drawable/icons8_medecin_50"
-        android:title="Docteur"/>
+        android:title="@string/search_dr"/>
     <item
         android:id="@+id/bottom_navigation_search_etablissement"
         android:enabled="true"
         android:icon="@drawable/big_hospital"
-        android:title="Etablissement"/>
+        android:title="@string/search_etab"/>
+    <item
+        android:id="@+id/bottom_navigation_list_doctor"
+        android:enabled="true"
+        android:icon="@drawable/icons8_medecin_50"
+        android:title="@string/list_dr"/>
+    <item
+        android:id="@+id/bottom_navigation_list_etablissement"
+        android:enabled="true"
+        android:icon="@drawable/big_hospital"
+        android:title="@string/list_etab"/>
 </menu>

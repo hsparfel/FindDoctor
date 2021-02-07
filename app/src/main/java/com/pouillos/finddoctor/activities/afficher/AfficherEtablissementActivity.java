@@ -77,6 +77,8 @@ public class AfficherEtablissementActivity extends NavDrawerActivity {
     FloatingActionButton fabGoogleMap;
     @BindView(R.id.fabWaze)
     FloatingActionButton fabWaze;
+    @BindView(R.id.fabSave)
+    FloatingActionButton fabSave;
 
     @BindView(R.id.activity_main_toolbar)
     Toolbar toolbar;
@@ -115,7 +117,9 @@ public class AfficherEtablissementActivity extends NavDrawerActivity {
         if (etablissementSelected == null) {
             fabGoogleMap.hide();
             fabWaze.hide();
+            fabSave.hide();
         } else {
+            fabSave.show();
             if (etablissementSelected.getAdresse() != null && etablissementSelected.getCp() != null &&
                     etablissementSelected.getVille() != null && !etablissementSelected.getAdresse().equalsIgnoreCase("")
                     && !etablissementSelected.getCp().equalsIgnoreCase("") && !etablissementSelected.getVille().equalsIgnoreCase("")) {
@@ -256,6 +260,13 @@ public class AfficherEtablissementActivity extends NavDrawerActivity {
             Intent intent = new Intent( Intent.ACTION_VIEW, Uri.parse( "market://details?id=com.waze" ) );
             startActivity(intent);
         }
+    }
+
+    @OnClick(R.id.fabSave)
+    public void fabSaveClick() {
+        etablissementSelected.setIsSelected(true);
+        etablissementDao.update(etablissementSelected);
+        fabSave.hide();
     }
 
 }

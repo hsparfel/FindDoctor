@@ -102,6 +102,8 @@ public class AfficherContactActivity extends NavDrawerActivity {
     FloatingActionButton fabGoogleMap;
     @BindView(R.id.fabWaze)
     FloatingActionButton fabWaze;
+    @BindView(R.id.fabSave)
+    FloatingActionButton fabSave;
 
     @BindView(R.id.activity_main_toolbar)
     Toolbar toolbar;
@@ -114,7 +116,6 @@ public class AfficherContactActivity extends NavDrawerActivity {
         setContentView(R.layout.activity_afficher_contact);
 
         this.configureToolBar();
-
         this.configureBottomView();
 
         ButterKnife.bind(this);
@@ -159,108 +160,16 @@ public class AfficherContactActivity extends NavDrawerActivity {
     }
 
 
-    public boolean checkFields() {
-        boolean bool = true;
-        if (!TextUtils.isEmpty(textZip.getText()) && !isFilled(textZip.getText())) {
-            layoutZip.setError(getString(R.string.not_valid));
-            bool = false;
-        } else {
-            layoutZip.setError(null);
-        }
-        if (!TextUtils.isEmpty(textPhone.getText()) && !isFilled(textPhone.getText())) {
-            layoutPhone.setError(getString(R.string.not_valid));
-            bool = false;
-        } else {
-            layoutPhone.setError(null);
-        }
-        if (!TextUtils.isEmpty(textFax.getText()) && !isFilled(textFax.getText())) {
-            layoutFax.setError(getString(R.string.not_valid));
-            bool = false;
-        } else {
-            layoutFax.setError(null);
-        }
-        if (!TextUtils.isEmpty(textZip.getText()) && !isValidZip(textZip)) {
-            layoutZip.setError(getString(R.string.not_valid_five_digits));
-            bool = false;
-        } else {
-            layoutZip.setError(null);
-        }
-        if (!TextUtils.isEmpty(textPhone.getText()) && !isValidTel(textPhone)) {
-            layoutPhone.setError(getString(R.string.not_valid_ten_digits));
-            bool = false;
-        } else {
-            layoutPhone.setError(null);
-        }
-        if (!TextUtils.isEmpty(textFax.getText()) && !isValidTel(textFax)) {
-            layoutFax.setError(getString(R.string.not_valid_ten_digits));
-            bool = false;
-        } else {
-            layoutPhone.setError(null);
-        }
-        if (!TextUtils.isEmpty(textEmail.getText()) && !isValidEmail(textEmail)) {
-            layoutEmail.setError(getString(R.string.not_valid));
-            bool = false;
-        } else {
-            layoutEmail.setError(null);
-        }
-        return bool;
-    }
 
-    private void resizeAllFields(boolean bool) {
-        if (bool) {
-            textDr.setMinWidth(getResources().getDimensionPixelOffset(R.dimen.field_min_width));
-            textName.setMinWidth(getResources().getDimensionPixelOffset(R.dimen.field_min_width));
-            textFirstName.setMinWidth(getResources().getDimensionPixelOffset(R.dimen.field_min_width));
-            textJob.setMinWidth(getResources().getDimensionPixelOffset(R.dimen.field_min_width));
-            textJob.setMinWidth(getResources().getDimensionPixelOffset(R.dimen.field_min_width));
-            textPlace.setMinWidth(getResources().getDimensionPixelOffset(R.dimen.field_min_width));
-            textComplement.setMinWidth(getResources().getDimensionPixelOffset(R.dimen.field_min_width));
-            textNumStreet.setMinWidth(getResources().getDimensionPixelOffset(R.dimen.field_min_width));
-            textZip.setMinWidth(getResources().getDimensionPixelOffset(R.dimen.field_min_width));
-            textTown.setMinWidth(getResources().getDimensionPixelOffset(R.dimen.field_min_width));
-            textPhone.setMinWidth(getResources().getDimensionPixelOffset(R.dimen.field_min_width));
-            textFax.setMinWidth(getResources().getDimensionPixelOffset(R.dimen.field_min_width));
-            textEmail.setMinWidth(getResources().getDimensionPixelOffset(R.dimen.field_min_width));
-        } else {
-            textDr.setMinWidth(0);
-            textName.setMinWidth(0);
-            textFirstName.setMinWidth(0);
-            textJob.setMinWidth(0);
-            textJob.setMinWidth(0);
-            textPlace.setMinWidth(0);
-            textComplement.setMinWidth(0);
-            textNumStreet.setMinWidth(0);
-            textZip.setMinWidth(0);
-            textTown.setMinWidth(0);
-            textPhone.setMinWidth(0);
-            textFax.setMinWidth(0);
-            textEmail.setMinWidth(0);
-        }
-
-    }
-
-    private void clearAllFields() {
-        textDr.setText(null);
-        textName.setText(null);
-        textFirstName.setText(null);
-        textJob.setText(null);
-        textJob.setText(null);
-        textPlace.setText(null);
-        textComplement.setText(null);
-        textNumStreet.setText(null);
-        textZip.setText(null);
-        textTown.setText(null);
-        textPhone.setText(null);
-        textFax.setText(null);
-        textEmail.setText(null);
-    }
 
 
     public void displayFabs() {
         if (contactSelected == null) {
             fabGoogleMap.hide();
             fabWaze.hide();
+            fabSave.hide();
         } else {
+            fabSave.show();
             if (contactSelected.getAdresse() != null && contactSelected.getCp() != null &&
                     contactSelected.getVille() != null && !contactSelected.getAdresse().equalsIgnoreCase("")
                     && !contactSelected.getCp().equalsIgnoreCase("") && !contactSelected.getVille().equalsIgnoreCase("")) {
@@ -444,6 +353,13 @@ public class AfficherContactActivity extends NavDrawerActivity {
             Intent intent = new Intent( Intent.ACTION_VIEW, Uri.parse( "market://details?id=com.waze" ) );
             startActivity(intent);
         }
+    }
+
+    @OnClick(R.id.fabSave)
+    public void fabSaveClick() {
+        contactSelected.setIsSelected(true);
+        contactDao.update(contactSelected);
+        fabSave.hide();
     }
 
 }

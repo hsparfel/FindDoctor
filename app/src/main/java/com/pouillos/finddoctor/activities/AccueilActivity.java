@@ -112,7 +112,6 @@ public class AccueilActivity extends NavDrawerActivity {
 
     public void importContact(View view) {
         progressBar.setVisibility(View.VISIBLE);
-        //remplirMedicamentOfficielBD();
         progressBar.setProgress(0);
         AsyncTaskRunnerContact runner = new AsyncTaskRunnerContact(this);
         runner.execute();
@@ -120,7 +119,6 @@ public class AccueilActivity extends NavDrawerActivity {
 
     public void importEtablissement(View view) {
         progressBar.setVisibility(View.VISIBLE);
-        //remplirMedicamentOfficielBD();
         progressBar.setProgress(0);
         AsyncTaskRunnerEtablissement runner = new AsyncTaskRunnerEtablissement(this);
         runner.execute();
@@ -333,37 +331,33 @@ public class AccueilActivity extends NavDrawerActivity {
             InputStream is = null;
             BufferedReader reader = null;
 
-            //List<Profession> listProfession = Profession.listAll(Profession.class);
             List<Profession> listProfession = professionDao.loadAll();
             Map<String, Profession> mapProfession = new HashMap<>();
             for (Profession profession : listProfession) {
                 mapProfession.put(profession.getName(), profession);
             }
 
-            //List<SavoirFaire> listSavoirFaire = SavoirFaire.listAll(SavoirFaire.class);
             List<SavoirFaire> listSavoirFaire = savoirFaireDao.loadAll();
             Map<String, SavoirFaire> mapSavoirFaire = new HashMap<>();
             for (SavoirFaire savoirFaire : listSavoirFaire) {
                 mapSavoirFaire.put(savoirFaire.getName(), savoirFaire);
             }
-//RAZ d'import Contact
-            //List<ImportContact> listImportContact = ImportContact.find(ImportContact.class,"import_completed = ?","0");
-            List<ImportContact> listImportContact = importContactDao.queryRaw("where import_completed = ?","0");
+             List<ImportContact> listImportContact = importContactDao.queryRaw("where import_completed = ?","0");
 
             int nbImportEffectue =0;
             int nbImportIgnore = 0;
             int readerCount=0;
             int nbLigneLue=0;
-            //long cptrContactIgnore = 0l;
+
             long cptrContactIgnore = contactIgnoreDao.count();
 
             for (ImportContact current : listImportContact) {
                 nbImportEffectue =0;
                 nbImportIgnore = 0;
-                //readerCount=0;
+
                 nbLigneLue=0;
-                //if (current.getDateDebut() == null) {
-                    if (current.getDateDebut().equalsIgnoreCase("")) {
+
+                if (current.getDateDebut().equalsIgnoreCase("")) {
                     current.setDateDebut(DateUtils.ecrireDateHeure(new Date()));
                 }
                 if (current.getNbLigneLue() != 0) {
@@ -380,7 +374,6 @@ public class AccueilActivity extends NavDrawerActivity {
                     is = getAssets().open(current.getPath());
                     reader = new BufferedReader(new InputStreamReader(is,"UTF-8"));
                     String line = null;
-
 
                     int readerSize = 20000;
                     readerCount = 0;
@@ -403,7 +396,7 @@ public class AccueilActivity extends NavDrawerActivity {
                             current.setNbImportIgnore(nbImportIgnore);
                             nbLigneLue++;
                             current.setNbLigneLue(nbLigneLue);
-                            //current.save();
+
                             importContactDao.update(current);
                             ContactIgnore contactIgnore = new ContactIgnore(cptrContactIgnore,lineSplitted[1],current.getPath(),nbLigneLue);
                             contactIgnoreDao.insert(contactIgnore);
@@ -412,7 +405,7 @@ public class AccueilActivity extends NavDrawerActivity {
                         }
 
                         Contact contact = new Contact();
-                        //ContactLight contactLight = new ContactLight();
+
                         contact.setIdPP(lineSplitted[2]);
                         contact.setCodeCivilite(lineSplitted[3]);
                         contact.setNom(lineSplitted[7].toUpperCase());
@@ -423,12 +416,6 @@ public class AccueilActivity extends NavDrawerActivity {
                         contact.setPrenom(prenom);
                         contact.setProfession(mapProfession.get(lineSplitted[10]));
 
-                        /*if (lineSplitted[16].equals("Qualifié en Médecine Générale") || lineSplitted[16].equals("Spécialiste en Médecine Générale")) {
-                            contact.setSavoirFaire(mapSavoirFaire.get("Médecine Générale"));
-                        } else {
-                            contact.setSavoirFaire(mapSavoirFaire.get(lineSplitted[16]));
-                        }*/
-
                         if (lineSplitted.length>16) {
                             if (lineSplitted[16].equals("Qualifié en Médecine Générale") || lineSplitted[16].equals("Spécialiste en Médecine Générale")) {
                                 contact.setSavoirFaire(mapSavoirFaire.get("Médecine Générale"));
@@ -436,7 +423,6 @@ public class AccueilActivity extends NavDrawerActivity {
                                 contact.setSavoirFaire(mapSavoirFaire.get(lineSplitted[16]));
                             }
                         }
-
 
                         if (lineSplitted.length>24) {
                             contact.setRaisonSocial(lineSplitted[24]);
@@ -460,21 +446,12 @@ public class AccueilActivity extends NavDrawerActivity {
                         }
                         contact.setAdresse(adresse.toUpperCase());
 
-                        /*if (lineSplitted.length>34 && !lineSplitted[34].isEmpty())  {
-
-                            contact.setCp(lineSplitted[34].substring(0,5));
-                            contact.setVille(lineSplitted[34].substring(6));
-
-                        } else {
-                            contact.setCp("");
-                        }*/
                         if (lineSplitted.length>34 && !lineSplitted[34].isEmpty())  {
                             if (lineSplitted.length>39 && lineSplitted[39].equalsIgnoreCase("Israel")) {
 //plutot different de france à voir si necessaire
                             } else {
                                 contact.setCp(lineSplitted[34].substring(0,5));
                                 contact.setVille(lineSplitted[34].substring(6));
-                                //todo modif ici si je veux supprimer cedex, cedex 1, cedex 20 etc ...
                                 if (contact.getVille().contains("CEDEX")) {
                                     for (int i=100;i>=0;i--){
                                         contact.setVille(contact.getVille().replace("CEDEX "+i,""));
@@ -510,24 +487,21 @@ public class AccueilActivity extends NavDrawerActivity {
                             contact.setEmail(lineSplitted[43]);
                         }
 
-                       // List<ContactLight> listContactLight = ContactLight.find(ContactLight.class, "id_pp = ?",lineSplitted[2]);
-                        //List<ContactLight> listContactLight = contactLightDao.queryRaw("where id_pp = ?",lineSplitted[2]);
                         List<Contact> listContact = contactDao.queryRaw("where id_pp = ?",lineSplitted[2]);
-                       // if (listContactLight.size()>0) {
+
                         if (listContact.size()>0) {
 
                             boolean bool = false;
-                            //for (ContactLight currentContactLight : listContactLight){
+
                             for (Contact currentContact : listContact){
-                                //if (comparer(currentContactLight, contact)){
+
                                 if (comparer(currentContact,contact)) {
                                     Log.i("existant","medecin deja cree: "+lineSplitted[2]);
                                     bool = true;
                                     cptrContactIgnore++;
                                     nbLigneLue++;
                                     current.setNbLigneLue(nbLigneLue);
-                                    //current.save();
-                                    //importContactDao.update(current);
+
                                     ContactIgnore contactIgnore = new ContactIgnore(cptrContactIgnore,lineSplitted[1],current.getPath(),nbLigneLue);
                                     contactIgnoreDao.insert(contactIgnore);
 
@@ -545,24 +519,10 @@ public class AccueilActivity extends NavDrawerActivity {
                             contact.enregisterCoordonnees(context);
                         }
                         Log.i("enregistre","medecin new: "+lineSplitted[2]);
-                        //contact.save();
-                        /*contactLight.setIdPP(contact.getIdPP());
-                        contactLight.setAdresse(contact.getAdresse());
-                        contactLight.setCodeCivilite(contact.getCodeCivilite());
-                        contactLight.setComplement(contact.getComplement());
-                        contactLight.setCp(contact.getCp());
-                        contactLight.setFax(contact.getFax());
-                        contactLight.setEmail(contact.getEmail());
-                        contactLight.setLatitude(contact.getLatitude());
-                        contactLight.setLongitude(contact.getLongitude());
-                        contactLight.setNom(contact.getNom());
-                        contactLight.setPrenom(contact.getPrenom());
-                        contactLight.setRaisonSocial(contact.getRaisonSocial());
-                        contactLight.setTelephone(contact.getTelephone());
-                        contactLight.setVille(contact.getVille());*/
+
 
                         contactDao.insert(contact);
-                        //contactLightDao.insert(contactLight);
+
                         nbLigneLue++;
                         nbImportEffectue++;
                         current.setNbLigneLue(nbLigneLue);
@@ -592,11 +552,9 @@ public class AccueilActivity extends NavDrawerActivity {
                 current.setNbImportIgnore(nbImportIgnore);
                 current.setNbImportEffectue(nbImportEffectue);
                 current.setImportCompleted(true);
-                //current.save();
+
                 importContactDao.update(current);
                 publishProgress(100);
-                //a voir si ça passe
-                //Toast.makeText(MainActivity.this, "Import de " + current.getPath() + " fini", Toast.LENGTH_LONG).show();
             }
 
             return null;
@@ -604,7 +562,7 @@ public class AccueilActivity extends NavDrawerActivity {
 
         protected void onPostExecute(Void result) {
             progressBar.setVisibility(View.GONE);
-            //Toast.makeText(MainActivity.this, "IMPORT TOTAL FINI", Toast.LENGTH_LONG).show();
+
             Snackbar.make(textView, "IMPORT Contact FINI", Snackbar.LENGTH_SHORT).setAnchorView(textView).show();
             Long count = contactDao.count();
             textNbContact.setText("nb de contacts = "+count);
@@ -620,8 +578,6 @@ public class AccueilActivity extends NavDrawerActivity {
 
         protected Void doInBackground(Void...voids) {
             publishProgress(0);
-
-
             publishProgress(10);
             remplirImportEtablissementBD();
             publishProgress(20);
@@ -642,7 +598,7 @@ public class AccueilActivity extends NavDrawerActivity {
 
         protected void onPostExecute(Void result) {
             progressBar.setVisibility(View.GONE);
-            //Toast.makeText(AccueilActivity.this, R.string.text_DB_created, Toast.LENGTH_LONG).show();
+
             Snackbar.make(textView, "DB Created", Snackbar.LENGTH_SHORT).setAnchorView(textView).show();
             Long count = contactDao.count();
             textNbContact.setText("nb de contacts = "+count);
@@ -657,7 +613,6 @@ public class AccueilActivity extends NavDrawerActivity {
     }
 
     public void remplirImportEtablissementBD() {
-        //Long count = ImportEtablissement.count(ImportEtablissement.class);
         Long count = importEtablissementDao.count();
         if (count == 0) {
             importEtablissementDao.insert(new ImportEtablissement(0l,"etablissement.txt", false,"","",0,0,0));
@@ -665,7 +620,6 @@ public class AccueilActivity extends NavDrawerActivity {
     }
 
     public void remplirImportContactBD() {
-       // Long count = ImportContact.count(ImportContact.class);
         Long count = importContactDao.count();
         if (count == 0) {
             for (long i = 0l;i<105;i++) {
@@ -676,12 +630,9 @@ public class AccueilActivity extends NavDrawerActivity {
     }
 
     public void remplirDepartementBD() {
-        //Long count = Departement.count(Departement.class);
+
         Long count = departementDao.count();
         if (count ==0) {
-
-            //departementDao.insert(new Departement(0l,"01","Ain",0l));
-
             departementDao.insert(new Departement(1l,"01","Ain", 0l));
             departementDao.insert(new Departement(2l,"02","Aisne",6l));
             departementDao.insert(new Departement(3l,"03","Allier",0l));
@@ -784,7 +735,6 @@ public class AccueilActivity extends NavDrawerActivity {
     }
 
     public void remplirRegionBD() {
-        //Long count = Region.count(Region.class);
         Long count = regionDao.count();
         if (count ==0) {
             regionDao.insert(new Region(0l,"Auvergne-Rhône-Alpes"));
@@ -807,7 +757,6 @@ public class AccueilActivity extends NavDrawerActivity {
     }
 
     public void remplirSavoirFaireBD() {
-        //Long count = SavoirFaire.count(SavoirFaire.class);
         Long count = savoirFaireDao.count();
         if (count ==0) {
             savoirFaireDao.insert(new SavoirFaire(0l,"Allergologie"));
@@ -884,7 +833,6 @@ public class AccueilActivity extends NavDrawerActivity {
     }
 
     public void remplirProfessionBD() {
-        //Long count = Profession.count(Profession.class);
         Long count = professionDao.count();
         if (count ==0) {
             professionDao.insert(new Profession(0l,"Audioprothésiste"));
@@ -919,7 +867,6 @@ public class AccueilActivity extends NavDrawerActivity {
     }
 
     public void remplirTypeEtablissementBD() {
-        //Long count = TypeEtablissement.count(TypeEtablissement.class);
         Long count = typeEtablissementDao.count();
         if (count ==0) {
             typeEtablissementDao.insert(new TypeEtablissement(0l,"Aire Station Nomades"));
@@ -1089,14 +1036,11 @@ public class AccueilActivity extends NavDrawerActivity {
         }
     }
 
-
-
     private boolean comparer(Contact medecin1, Contact medecin2){
         boolean bool = true;
         if (medecin1.getIdPP() != null && medecin2.getIdPP() != null) {
             bool = bool && medecin1.getIdPP().equalsIgnoreCase(medecin2.getIdPP());
         }
-        ///////
         if (medecin1.getCodeCivilite() != null && medecin2.getCodeCivilite() != null) {
             bool = bool && medecin1.getCodeCivilite().equalsIgnoreCase(medecin2.getCodeCivilite());
         }
@@ -1142,13 +1086,6 @@ public class AccueilActivity extends NavDrawerActivity {
         if (medecin1.getRegion() != null && medecin2.getRegion() != null) {
             bool = bool && (medecin1.getRegionId() == (medecin2.getRegionId()));
         }
-        //if (medecin1.getLatitude() != null && medecin2.getLatitude() != null) {
-            //bool = bool && (medecin1.getLatitude() == medecin2.getLatitude());
-        //}
-        //if (medecin1.getLongitude() != null && medecin2.getLongitude() != null) {
-            //bool = bool && (medecin1.getLongitude() == medecin2.getLongitude());
-        //}
         return bool;
     }
-
 }

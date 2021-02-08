@@ -8,6 +8,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.Menu;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -130,6 +131,9 @@ public class AfficherMesEtablissementsActivity extends NavDrawerActivity impleme
         hideAllFields();
 
         selectedEtablissement.setOnItemClickListener(this);
+
+        Menu bottomNavigationViewMenu = bottomNavigationView.getMenu();
+        bottomNavigationViewMenu.findItem(R.id.bottom_navigation_list_etablissement).setChecked(true);
     }
 
 

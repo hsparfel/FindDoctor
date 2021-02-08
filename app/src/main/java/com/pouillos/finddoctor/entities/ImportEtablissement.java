@@ -4,7 +4,6 @@ import org.greenrobot.greendao.annotation.Entity;
 import org.greenrobot.greendao.annotation.Id;
 import org.greenrobot.greendao.annotation.NotNull;
 
-import java.io.Serializable;
 import org.greenrobot.greendao.annotation.Generated;
 
 @Entity
@@ -22,6 +21,7 @@ public class ImportEtablissement {
     private int nbLigneLue;
     private int nbImportEffectue;
     private int nbImportIgnore;
+
     @Generated(hash = 369369004)
     public ImportEtablissement(Long id, @NotNull String path,
             boolean importCompleted, String dateDebut, String dateFin,
@@ -35,9 +35,11 @@ public class ImportEtablissement {
         this.nbImportEffectue = nbImportEffectue;
         this.nbImportIgnore = nbImportIgnore;
     }
+
     @Generated(hash = 253591664)
     public ImportEtablissement() {
     }
+
     public Long getId() {
         return this.id;
     }
@@ -86,11 +88,4 @@ public class ImportEtablissement {
     public void setNbImportIgnore(int nbImportIgnore) {
         this.nbImportIgnore = nbImportIgnore;
     }
-
-
-
-
-
-
-
 }

@@ -14,6 +14,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -144,6 +145,9 @@ public class ChercherEtablissementActivity extends NavDrawerActivity implements 
         fabRaz.hide();
         hideAll();
         setTitle("Chercher Etablissement");
+
+        Menu bottomNavigationViewMenu = bottomNavigationView.getMenu();
+        bottomNavigationViewMenu.findItem(R.id.bottom_navigation_search_etablissement).setChecked(true);
     }
 
     final Looper looper = null;
@@ -486,6 +490,25 @@ public class ChercherEtablissementActivity extends NavDrawerActivity implements 
     @OnClick(R.id.chipAutreType)
     public void chipAutreTypeClick() {
         booleanAutreType=!booleanAutreType;
+
+
+        //listTypeEtablissementBD = typeEtablissementDao.loadAll();
+        List<Etablissement> listEtab = new ArrayList<>();
+        if (chipVille.isChecked()) {
+            listEtab = etablissementDao.queryRaw("where ville = ?", selectionVille.getText().toString());
+        }
+        if (chipCp.isChecked()) {
+            listEtab = etablissementDao.queryRaw("where cp = ?", textZip.getText().toString());
+        }
+        listTypeEtablissementBD = new ArrayList<>();
+        for (Etablissement currentEtab : listEtab) {
+            if (!listTypeEtablissementBD.contains(currentEtab.getTypeEtablissement())){
+                listTypeEtablissementBD.add(currentEtab.getTypeEtablissement());
+            }
+        }
+        Collections.sort(listTypeEtablissementBD);
+        buildDropdownMenu(listTypeEtablissementBD, ChercherEtablissementActivity.this,selectionAutreType);
+
         if (booleanAutreType) {
             listAutreType.setVisibility(View.VISIBLE);
             selectionAutreType.setOnItemClickListener(new AdapterView.OnItemClickListener() {

@@ -16,21 +16,12 @@ import java.util.List;
 public class RecyclerAdapterEtablissement extends RecyclerView.Adapter<RecyclerViewHolderEtablissement> {
 
         private List<Etablissement> listEtablissement;
-        double latitude;
-        double longitude;
 
     public interface Listener {
         void onClickEtablissementButton(int position);
     }
 
     private final Listener callback;
-
-        /*public RecyclerAdapterEtablissement(List<Etablissement> listEtablissement,double latitude, double longitude, Listener callback) {
-            this.listEtablissement = listEtablissement;
-            this.latitude = latitude;
-            this.longitude = longitude;
-            this.callback = callback;
-        }*/
 
     public RecyclerAdapterEtablissement(List<Etablissement> listEtablissement, Listener callback) {
         this.listEtablissement = listEtablissement;
@@ -48,9 +39,7 @@ public class RecyclerAdapterEtablissement extends RecyclerView.Adapter<RecyclerV
 
         @Override
         public void onBindViewHolder(RecyclerViewHolderEtablissement viewHolder, int position) {
-              //  viewHolder.updateWithEtablissement(this.listEtablissement.get(position), this.callback);
             viewHolder.updateWithEtablissement(this.listEtablissement.get(position),this.callback);
-
         }
 
         @Override

@@ -113,7 +113,7 @@ public class Etablissement implements Comparable<Etablissement> {
 
     @Override
     public String toString() {
-        return raisonSocial;
+        return raisonSocial+" - "+ville;
     }
 
 

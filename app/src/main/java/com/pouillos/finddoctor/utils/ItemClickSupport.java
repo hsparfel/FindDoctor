@@ -42,7 +42,6 @@ public class ItemClickSupport {
 
         @Override
         public void onChildViewDetachedFromWindow(View view) {
-
         }
     };
 

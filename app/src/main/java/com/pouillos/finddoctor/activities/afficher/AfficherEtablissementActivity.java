@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.Menu;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -99,6 +100,8 @@ public class AfficherEtablissementActivity extends NavDrawerActivity {
         hideAllFields();
         traiterIntent();
         setTitle("Etablissement");
+        Menu bottomNavigationViewMenu = bottomNavigationView.getMenu();
+        bottomNavigationViewMenu.findItem(R.id.bottom_navigation_search_etablissement).setChecked(true);
     }
 
     public void traiterIntent() {
@@ -119,7 +122,9 @@ public class AfficherEtablissementActivity extends NavDrawerActivity {
             fabWaze.hide();
             fabSave.hide();
         } else {
-            fabSave.show();
+            if (!etablissementSelected.getIsSelected()) {
+                fabSave.show();
+            }
             if (etablissementSelected.getAdresse() != null && etablissementSelected.getCp() != null &&
                     etablissementSelected.getVille() != null && !etablissementSelected.getAdresse().equalsIgnoreCase("")
                     && !etablissementSelected.getCp().equalsIgnoreCase("") && !etablissementSelected.getVille().equalsIgnoreCase("")) {

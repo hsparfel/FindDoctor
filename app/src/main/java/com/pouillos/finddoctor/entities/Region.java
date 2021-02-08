@@ -1,12 +1,9 @@
 package com.pouillos.finddoctor.entities;
 
-
-
 import org.greenrobot.greendao.annotation.Entity;
 import org.greenrobot.greendao.annotation.Id;
 import org.greenrobot.greendao.annotation.NotNull;
 
-import java.io.Serializable;
 import org.greenrobot.greendao.annotation.Generated;
 
 @Entity
@@ -18,8 +15,6 @@ public class Region implements Comparable<Region> {
     @NotNull
     private String nom;
 
-
-
     @Generated(hash = 338124540)
     public Region(Long id, @NotNull String nom) {
         this.id = id;
@@ -29,8 +24,6 @@ public class Region implements Comparable<Region> {
     @Generated(hash = 600106640)
     public Region() {
     }
-
-
 
         @Override
     public int compareTo(Region o) {

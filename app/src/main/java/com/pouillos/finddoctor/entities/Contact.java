@@ -147,12 +147,14 @@ public class Contact implements Comparable<Contact>{
         if (prenom != null) {
             affichage += prenom;
         }
-        if (savoirFaire != null) {
-            affichage += " - " + savoirFaire;
-        } else {
-            if (profession != null) {
-                affichage +=  " - " + profession;
-            }
+        if (!this.getSavoirFaire().toString().equalsIgnoreCase("")) {
+            affichage += " - " + this.getSavoirFaire();
+        }
+        if (!this.getProfession().toString().equalsIgnoreCase("")) {
+                affichage +=  " - " + this.getProfession();
+        }
+        if (!ville.equalsIgnoreCase("")){
+            affichage += " - " + ville;
         }
 
         return affichage;

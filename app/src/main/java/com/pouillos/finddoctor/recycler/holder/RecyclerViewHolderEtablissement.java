@@ -25,24 +25,16 @@ public class RecyclerViewHolderEtablissement extends RecyclerView.ViewHolder imp
     public RecyclerViewHolderEtablissement(View itemView) {
         super(itemView);
         ButterKnife.bind(this, itemView);
-        //ButterKnife.bind(this);
     }
 
     public void updateWithEtablissement(Etablissement etablissement, RecyclerAdapterEtablissement.Listener callback){
-       // double distance = ChercherEtablissementActivity.calculerDistance(latitude,longitude,etablissement.getLatitude(),etablissement.getLongitude());
-
-//todo revoir l'affichage en limitan apres la virgule - FAIT OK
         NumberFormat formatter = new DecimalFormat("#0.0");
-       // System.out.println(formatter.format(4.0));
-
-      //  this.detail.setText(etablissement.getRaisonSocial() + " - " + formatter.format(distance)+ " km");
         this.detail.setText(etablissement.getRaisonSocial() + " - " + formatter.format(etablissement.getDistance())+ " km");
         this.detail.setOnClickListener(this);
 
         //4 - Create a new weak Reference to our Listener
         this.callbackWeakRef = new WeakReference<RecyclerAdapterEtablissement.Listener>(callback);
     }
-
 
     @Override
     public void onClick(View view) {

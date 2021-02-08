@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.Menu;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -151,6 +152,9 @@ public class AfficherMesContactsActivity extends NavDrawerActivity implements Ad
         hideAllFields();
 
         selectedContact.setOnItemClickListener(this);
+
+        Menu bottomNavigationViewMenu = bottomNavigationView.getMenu();
+        bottomNavigationViewMenu.findItem(R.id.bottom_navigation_list_doctor).setChecked(true);
     }
 
 

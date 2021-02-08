@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.Menu;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -129,6 +130,9 @@ public class AfficherContactActivity extends NavDrawerActivity {
         hideAllFields();
 
         traiterIntent();
+
+        Menu bottomNavigationViewMenu = bottomNavigationView.getMenu();
+        bottomNavigationViewMenu.findItem(R.id.bottom_navigation_search_doctor).setChecked(true);
     }
 
 
@@ -169,7 +173,9 @@ public class AfficherContactActivity extends NavDrawerActivity {
             fabWaze.hide();
             fabSave.hide();
         } else {
-            fabSave.show();
+            if (!contactSelected.getIsSelected()) {
+                fabSave.show();
+            }
             if (contactSelected.getAdresse() != null && contactSelected.getCp() != null &&
                     contactSelected.getVille() != null && !contactSelected.getAdresse().equalsIgnoreCase("")
                     && !contactSelected.getCp().equalsIgnoreCase("") && !contactSelected.getVille().equalsIgnoreCase("")) {

@@ -1,12 +1,9 @@
 package com.pouillos.finddoctor.entities;
 
-
-
 import org.greenrobot.greendao.annotation.Entity;
 import org.greenrobot.greendao.annotation.Id;
 import org.greenrobot.greendao.annotation.NotNull;
 
-import java.io.Serializable;
 import org.greenrobot.greendao.annotation.Generated;
 
 @Entity
@@ -89,5 +86,4 @@ public class ImportContact {
     public void setNbImportIgnore(int nbImportIgnore) {
         this.nbImportIgnore = nbImportIgnore;
     }
-
 }

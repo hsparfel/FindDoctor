@@ -1,6 +1,7 @@
 package com.pouillos.finddoctor.activities;
 
-
+import android.app.ActivityManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -62,29 +63,23 @@ public class NavDrawerActivity<T> extends AppCompatActivity {
 
     protected DaoSession daoSession;
 
-
     protected ContactDao contactDao;
-
     protected DepartementDao departementDao;
     protected ImportContactDao importContactDao;
     protected ImportEtablissementDao importEtablissementDao;
     protected ProfessionDao professionDao;
     protected RegionDao regionDao;
     protected SavoirFaireDao savoirFaireDao;
-
     protected TypeEtablissementDao typeEtablissementDao;
     protected EtablissementDao etablissementDao;
     protected ContactIgnoreDao contactIgnoreDao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        //a redefinit à chq fois
         super.onCreate(savedInstanceState);
-        //initialiser greenDAO
         initialiserDao();
 
         contactDao = daoSession.getContactDao();
-
         departementDao = daoSession.getDepartementDao();
         importContactDao = daoSession.getImportContactDao();
         professionDao = daoSession.getProfessionDao();
@@ -130,9 +125,7 @@ public class NavDrawerActivity<T> extends AppCompatActivity {
                 new BottomNavigationView.OnNavigationItemSelectedListener() {
                     @Override
                     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-
                         switch (item.getItemId()) {
-
                             case R.id.bottom_navigation_home:
                                 ouvrirActiviteSuivante(NavDrawerActivity.this, AccueilActivity.class, true);
                                 break;
@@ -200,16 +193,6 @@ public class NavDrawerActivity<T> extends AppCompatActivity {
         return super.getMainExecutor();
     }
 
-    protected boolean isFilled(TextInputEditText textInputEditText){
-        boolean bool;
-        if (textInputEditText.length()>0) {
-            bool = true;
-        } else {
-            bool = false;
-        }
-        return bool;
-    }
-
     protected boolean isFilled(Object object){
         boolean bool;
         if (object!=null) {
@@ -222,8 +205,6 @@ public class NavDrawerActivity<T> extends AppCompatActivity {
 
     protected boolean isValidTel(TextView textView) {
         if (!TextUtils.isEmpty(textView.getText()) && textView.getText().length() <10) {
-            //textView.requestFocus();
-            //textView.setError("Saisie Non Valide  (10 chiffres)");
             return false;
         } else {
             return true;
@@ -232,8 +213,6 @@ public class NavDrawerActivity<T> extends AppCompatActivity {
 
     protected boolean isValidZip(TextView textView) {
         if (!TextUtils.isEmpty(textView.getText()) && textView.getText().length() <5) {
-            //textView.requestFocus();
-            //textView.setError("Saisie Non Valide  (5 chiffres)");
             return false;
         } else {
             return true;
@@ -247,8 +226,6 @@ public class NavDrawerActivity<T> extends AppCompatActivity {
     }
     protected boolean isValidEmail(TextView textView) {
         if (!TextUtils.isEmpty(textView.getText()) && !isEmailAdress(textView.getText().toString())) {
-            //textView.requestFocus();
-            //textView.setError("Saisie Non Valide (email)");
             return false;
         } else {
             return true;
@@ -267,32 +244,13 @@ public class NavDrawerActivity<T> extends AppCompatActivity {
     }
 
     public Departement findDepartement(String cp) {
-        Departement departement = new Departement();
+        Departement departement;
         if (!cp.equalsIgnoreCase("")) {
-            //departement = Departement.find(Departement.class,"numero = ?",cp.substring(0,2)).get(0);
             departement = departementDao.queryRaw("where numero = ?",cp.substring(0,2)).get(0);
         } else {
-            //departement = Departement.find(Departement.class,"numero = ?","XX").get(0);
             departement = departementDao.queryRaw("where numero = ?","XX").get(0);
 
         }
         return departement;
-    }
-
-    public List<T> executerSql(String rawSql, Class<T> nomClasse) {
-        //Class<T> currentClass = (Class<T>) Class.forName(nomClasse).newInstance();
-        ArrayList<T> result = new ArrayList<T>();
-        Cursor c = daoSession.getDatabase().rawQuery(rawSql, null);
-        try{
-            if (c.moveToFirst()) {
-                do {
-                    //result.add((T) c.getString(0));
-                    result.add((T) c);
-                } while (c.moveToNext());
-            }
-        } finally {
-            c.close();
-        }
-        return result;
     }
 }

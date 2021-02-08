@@ -1,11 +1,9 @@
 package com.pouillos.finddoctor.entities;
 
-
 import org.greenrobot.greendao.annotation.Entity;
 import org.greenrobot.greendao.annotation.Id;
 import org.greenrobot.greendao.annotation.NotNull;
 
-import java.io.Serializable;
 import org.greenrobot.greendao.annotation.Generated;
 
 @Entity
@@ -17,8 +15,6 @@ public class Profession implements Comparable<Profession> {
     @NotNull
     private String name;
 
-
-
     @Generated(hash = 619319127)
     public Profession(Long id, @NotNull String name) {
         this.id = id;
@@ -28,8 +24,6 @@ public class Profession implements Comparable<Profession> {
     @Generated(hash = 900874100)
     public Profession() {
     }
-
-
 
     @Override
     public int compareTo(Profession o) {

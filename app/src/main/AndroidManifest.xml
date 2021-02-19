@@ -31,70 +31,70 @@
 
         <provider
             android:name=".provider.ContactContentProvider"
-            android:authorities="com.pouillos.partagedonneesfournisseur.provider"
+            android:authorities="com.pouillos.finddoctor.provider"
 
             android:exported="true"
             android:enabled="true"
             android:multiprocess="true"/>
         <provider
             android:name=".provider.ContactLightContentProvider"
-            android:authorities="com.pouillos.partagedonneesfournisseur.provider"
+            android:authorities="com.pouillos.finddoctor.provider"
 
             android:exported="true"
             android:enabled="true"
             android:multiprocess="true"/>
         <provider
             android:name=".provider.DepartementContentProvider"
-            android:authorities="com.pouillos.partagedonneesfournisseur.provider"
+            android:authorities="com.pouillos.finddoctor.provider"
 
             android:exported="true"
             android:enabled="true"
             android:multiprocess="true"/>
         <provider
             android:name=".provider.EtablissementContentProvider"
-            android:authorities="com.pouillos.partagedonneesfournisseur.provider"
+            android:authorities="com.pouillos.finddoctor.provider"
 
             android:exported="true"
             android:enabled="true"
             android:multiprocess="true"/>
         <provider
             android:name=".provider.EtablissementLightContentProvider"
-            android:authorities="com.pouillos.partagedonneesfournisseur.provider"
+            android:authorities="com.pouillos.finddoctor.provider"
 
             android:exported="true"
             android:enabled="true"
             android:multiprocess="true"/>
         <provider
             android:name=".provider.ProfessionContentProvider"
-            android:authorities="com.pouillos.partagedonneesfournisseur.provider"
+            android:authorities="com.pouillos.finddoctor.provider"
 
             android:exported="true"
             android:enabled="true"
             android:multiprocess="true"/>
         <provider
             android:name=".provider.RegionContentProvider"
-            android:authorities="com.pouillos.partagedonneesfournisseur.provider"
+            android:authorities="com.pouillos.finddoctor.provider"
 
             android:exported="true"
             android:enabled="true"
             android:multiprocess="true"/>
         <provider
             android:name=".provider.SavoirFaireContentProvider"
-            android:authorities="com.pouillos.partagedonneesfournisseur.provider"
+            android:authorities="com.pouillos.finddoctor.provider"
 
             android:exported="true"
             android:enabled="true"
             android:multiprocess="true"/>
         <provider
             android:name=".provider.TypeEtablissementContentProvider"
-            android:authorities="com.pouillos.partagedonneesfournisseur.provider"
+            android:authorities="com.pouillos.finddoctor.provider"
 
             android:exported="true"
             android:enabled="true"
             android:multiprocess="true"/>
         <provider
             android:name=".provider.AssociationContactLightEtablissementLightContentProvider"
-            android:authorities="com.pouillos.partagedonneesfournisseur.provider"
+            android:authorities="com.pouillos.finddoctor.provider"
 
             android:exported="true"
             android:enabled="true"

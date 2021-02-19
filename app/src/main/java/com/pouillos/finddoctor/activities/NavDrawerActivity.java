@@ -28,12 +28,16 @@ import com.pouillos.finddoctor.activities.afficher.AfficherMesEtablissementsActi
 import com.pouillos.finddoctor.activities.recherche.ChercherContactActivity;
 import com.pouillos.finddoctor.activities.recherche.ChercherEtablissementActivity;
 import com.pouillos.finddoctor.dao.AppOpenHelper;
+import com.pouillos.finddoctor.dao.AssociationContactLightEtablissementLightDao;
 import com.pouillos.finddoctor.dao.ContactDao;
 import com.pouillos.finddoctor.dao.ContactIgnoreDao;
+import com.pouillos.finddoctor.dao.ContactLightDao;
 import com.pouillos.finddoctor.dao.DaoMaster;
 import com.pouillos.finddoctor.dao.DaoSession;
 import com.pouillos.finddoctor.dao.DepartementDao;
 import com.pouillos.finddoctor.dao.EtablissementDao;
+import com.pouillos.finddoctor.dao.EtablissementLightDao;
+import com.pouillos.finddoctor.dao.ImportAssociationDao;
 import com.pouillos.finddoctor.dao.ImportContactDao;
 import com.pouillos.finddoctor.dao.ImportEtablissementDao;
 
@@ -41,6 +45,7 @@ import com.pouillos.finddoctor.dao.ProfessionDao;
 import com.pouillos.finddoctor.dao.RegionDao;
 import com.pouillos.finddoctor.dao.SavoirFaireDao;
 import com.pouillos.finddoctor.dao.TypeEtablissementDao;
+import com.pouillos.finddoctor.entities.AssociationContactLightEtablissementLight;
 import com.pouillos.finddoctor.entities.Departement;
 
 import org.greenrobot.greendao.database.Database;
@@ -58,12 +63,12 @@ public class NavDrawerActivity<T> extends AppCompatActivity {
 
     protected Toolbar toolbar;
     protected DrawerLayout drawerLayout;
-    protected NavigationView navigationView;
     protected BottomNavigationView bottomNavigationView;
 
     protected DaoSession daoSession;
 
     protected ContactDao contactDao;
+    protected ContactLightDao contactLightDao;
     protected DepartementDao departementDao;
     protected ImportContactDao importContactDao;
     protected ImportEtablissementDao importEtablissementDao;
@@ -72,7 +77,10 @@ public class NavDrawerActivity<T> extends AppCompatActivity {
     protected SavoirFaireDao savoirFaireDao;
     protected TypeEtablissementDao typeEtablissementDao;
     protected EtablissementDao etablissementDao;
+    protected EtablissementLightDao etablissementLightDao;
     protected ContactIgnoreDao contactIgnoreDao;
+    protected AssociationContactLightEtablissementLightDao associationContactLightEtablissementLightDao;
+    protected ImportAssociationDao importAssociationDao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +88,7 @@ public class NavDrawerActivity<T> extends AppCompatActivity {
         initialiserDao();
 
         contactDao = daoSession.getContactDao();
+        contactLightDao = daoSession.getContactLightDao();
         departementDao = daoSession.getDepartementDao();
         importContactDao = daoSession.getImportContactDao();
         professionDao = daoSession.getProfessionDao();
@@ -87,8 +96,11 @@ public class NavDrawerActivity<T> extends AppCompatActivity {
         savoirFaireDao = daoSession.getSavoirFaireDao();
         typeEtablissementDao = daoSession.getTypeEtablissementDao();
         etablissementDao = daoSession.getEtablissementDao();
+        etablissementLightDao = daoSession.getEtablissementLightDao();
         importEtablissementDao = daoSession.getImportEtablissementDao();
         contactIgnoreDao = daoSession.getContactIgnoreDao();
+        associationContactLightEtablissementLightDao = daoSession.getAssociationContactLightEtablissementLightDao();
+        importAssociationDao = daoSession.getImportAssociationDao();
     }
 
     @Override
@@ -237,7 +249,10 @@ public class NavDrawerActivity<T> extends AppCompatActivity {
     }
 
     public void initialiserDao() {
-        AppOpenHelper helper = new AppOpenHelper(this, "find_doctor_db", null);
+        //Base pendant dev
+        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, "find_doctor_db");
+        //Base de prod
+        //AppOpenHelper helper = new AppOpenHelper(this, "find_doctor_db", null);
         Database db = helper.getWritableDb();
         DaoMaster daoMaster = new DaoMaster(db);
         daoSession = daoMaster.newSession();

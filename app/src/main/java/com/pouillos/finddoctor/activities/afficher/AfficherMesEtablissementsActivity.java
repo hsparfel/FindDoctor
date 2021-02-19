@@ -490,7 +490,7 @@ public class AfficherMesEtablissementsActivity extends NavDrawerActivity impleme
     */
         etablissementSelected.setIsSelected(false);
         etablissementDao.update(etablissementSelected);
-        recreate();
+        //recreate();
         finish();
         startActivity(getIntent());
     }

@@ -86,6 +86,16 @@
             android:layout_marginBottom="10dip"
             android:onClick="razDb"
             android:text="Raz DB" />
+
+        <Button
+            android:id="@+id/btnAssociation"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dip"
+            android:layout_marginBottom="10dip"
+            android:onClick="associerContactLightEtablissementLight"
+            android:text="Associer ContactLight et EtablissementLight" />
     </LinearLayout>
 
     <LinearLayout

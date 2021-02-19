@@ -15,10 +15,14 @@ import com.facebook.stetho.Stetho;
 import com.google.android.material.snackbar.Snackbar;
 import com.pouillos.finddoctor.R;
 
+import com.pouillos.finddoctor.entities.AssociationContactLightEtablissementLight;
 import com.pouillos.finddoctor.entities.Contact;
 import com.pouillos.finddoctor.entities.ContactIgnore;
+import com.pouillos.finddoctor.entities.ContactLight;
 import com.pouillos.finddoctor.entities.Departement;
 import com.pouillos.finddoctor.entities.Etablissement;
+import com.pouillos.finddoctor.entities.EtablissementLight;
+import com.pouillos.finddoctor.entities.ImportAssociation;
 import com.pouillos.finddoctor.entities.ImportContact;
 import com.pouillos.finddoctor.entities.ImportEtablissement;
 import com.pouillos.finddoctor.entities.Profession;
@@ -31,6 +35,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -72,21 +77,141 @@ public class AccueilActivity extends NavDrawerActivity {
         runnerBD.execute();
     }
 
+    public void associerContactLightEtablissementLight(View view) {
+        progressBar.setVisibility(View.VISIBLE);
+        progressBar.setProgress(0);
+        AsyncTaskRunnerAssocier runner = new AsyncTaskRunnerAssocier(this);
+        runner.execute();
+    }
+
+    private class AsyncTaskRunnerAssocier extends AsyncTask<Void, Integer, Void> {
+
+        private Context context;
+        public AsyncTaskRunnerAssocier(Context context) {
+            this.context=context;
+        }
+
+        protected Void doInBackground(Void...voids) {
+            publishProgress(0);
+            publishProgress(10);
+            List<ContactLight> listContactLight = contactLightDao.queryRaw("where raison_social <> ? and adresse <> ? and cp <> ? and ville <> ?", "", "", "", "");
+            ImportAssociation importAssociation;
+            float compteur = 0f;
+            if (importAssociationDao.count()==0) {
+                //List<ContactLight> listContactLight = contactLightDao.queryRaw("where raison_social <> ? and adresse <> ? and cp <> ? and ville <> ?", "", "", "", "");
+                importAssociation = new ImportAssociation();
+                importAssociation.setNbContact(listContactLight.size());
+                importAssociation.setCompteur(0);
+                importAssociation.setId(importAssociationDao.insert(importAssociation));
+                publishProgress(20);
+            } else {
+                importAssociation = importAssociationDao.load(1l);
+                compteur = importAssociation.getCompteur();
+            }
+                float avancement = compteur/importAssociation.getNbContact();
+                for (ContactLight currentContactLight : listContactLight) {
+                    List<EtablissementLight> listEtablissementLight = etablissementLightDao.queryRaw("where raison_social = ?",currentContactLight.getRaisonSocial());
+
+                    if (listContactLight.indexOf(currentContactLight)>=compteur) {
+                        if (listEtablissementLight.size() == 0) {
+                            List<EtablissementLight> listEtablissementLightWithoutRaisonSocial = etablissementLightDao.queryRaw("where adresse = ? and cp = ? and ville = ?",currentContactLight.getAdresse(), currentContactLight.getCp(), currentContactLight.getVille());
+                            if (listEtablissementLightWithoutRaisonSocial.size() == 0) {
+                            } else if (listEtablissementLightWithoutRaisonSocial.size() == 1) {
+                                EtablissementLight identifiedEtablissementLight = listEtablissementLightWithoutRaisonSocial.get(0);
+                                AssociationContactLightEtablissementLight associationContactLightEtablissementLight = new AssociationContactLightEtablissementLight();
+                                associationContactLightEtablissementLight.setContactLightId(currentContactLight.getId());
+                                associationContactLightEtablissementLight.setEtablissementLightId(identifiedEtablissementLight.getId());
+                                associationContactLightEtablissementLight.setId(associationContactLightEtablissementLightDao.insert(associationContactLightEtablissementLight));
+                            } else {
+                                for (EtablissementLight currentEtablissementLight : listEtablissementLightWithoutRaisonSocial) {
+                                    AssociationContactLightEtablissementLight associationContactLightEtablissementLight = new AssociationContactLightEtablissementLight();
+                                    associationContactLightEtablissementLight.setContactLightId(currentContactLight.getId());
+                                    associationContactLightEtablissementLight.setEtablissementLightId(currentEtablissementLight.getId());
+                                    associationContactLightEtablissementLight.setId(associationContactLightEtablissementLightDao.insert(associationContactLightEtablissementLight));
+                                }
+                            }
+                        } else if (listEtablissementLight.size() == 1) {
+                            EtablissementLight identifiedEtablissementLight = listEtablissementLight.get(0);
+                            AssociationContactLightEtablissementLight associationContactLightEtablissementLight = new AssociationContactLightEtablissementLight();
+                            associationContactLightEtablissementLight.setContactLightId(currentContactLight.getId());
+                            associationContactLightEtablissementLight.setEtablissementLightId(identifiedEtablissementLight.getId());
+                            associationContactLightEtablissementLight.setId(associationContactLightEtablissementLightDao.insert(associationContactLightEtablissementLight));
+                        } else {
+                            for (EtablissementLight currentEtablissementLight : listEtablissementLight) {
+                                if (currentEtablissementLight.getCp().equalsIgnoreCase(currentContactLight.getCp()) || currentEtablissementLight.getVille().equalsIgnoreCase(currentContactLight.getVille())) {
+                                    AssociationContactLightEtablissementLight associationContactLightEtablissementLight = new AssociationContactLightEtablissementLight();
+                                    associationContactLightEtablissementLight.setContactLightId(currentContactLight.getId());
+                                    associationContactLightEtablissementLight.setEtablissementLightId(currentEtablissementLight.getId());
+                                    associationContactLightEtablissementLight.setId(associationContactLightEtablissementLightDao.insert(associationContactLightEtablissementLight));
+                                }
+                            }
+                        }
+                        compteur+=1f;
+                        importAssociation.setCompteur((int) compteur);
+                        importAssociationDao.update(importAssociation);
+                        avancement = compteur/importAssociation.getNbContact();
+                        publishProgress( Math.round(20+avancement*70));
+                    }
+                }
+                listContactLight = contactLightDao.queryRaw("where raison_social = ? and adresse <> ? and cp <> ? and ville <> ?","","","","");
+                Log.i("list2 size:",""+listContactLight.size());
+                publishProgress(90);
+
+
+
+
+
+
+
+            publishProgress(100);
+            return null;
+        }
+
+        protected void onPostExecute(Void result) {
+            progressBar.setVisibility(View.GONE);
+            Snackbar.make(textView, "IMPORT Association FINI", Snackbar.LENGTH_SHORT).setAnchorView(textView).show();
+        }
+
+        @RequiresApi(api = Build.VERSION_CODES.N)
+        protected void onProgressUpdate(Integer... integer) {
+            progressBar.setProgress(integer[0],true);
+        }
+    }
+
     public void razDb(View view) {
         //decommenter les tables à raz
 
+        /*ImportContact importContact = importContactDao.load(52l);
+        importContact.setImportCompleted(false);
+        importContactDao.update(importContact);*/
+
+        //departementDao.deleteAll();
+
+       /* List<ImportContact> listImportContact = importContactDao.loadAll();
+        int i = 0;
+        for (ImportContact current : listImportContact) {
+            current.setImportCompleted(false);
+            if (i<50) {
+                current.setImportCompleted(true);
+            }
+            importContactDao.update(current);
+            i++;
+        }*/
+
+      //  associationContactLightEtablissementLightDao.deleteAll();
+     //   importAssociationDao.deleteAll();
+        //departementDao.deleteAll();
         //contactDao.deleteAll();
-        //contactLightDao.deleteAll();
 
-           //importContactDao.deleteAll();
-
+        //importContactDao.deleteAll();
+        //contactIgnoreDao.deleteAll();
         //delete contactIgnore si numLigne = 1
-        List<ContactIgnore> listContactIgnore = contactIgnoreDao.loadAll();
+        /*List<ContactIgnore> listContactIgnore = contactIgnoreDao.loadAll();
         for (ContactIgnore current : listContactIgnore) {
             if (current.getNumLigne() ==1) {
                 contactIgnoreDao.delete(current);
             }
-        }
+        }*/
 
         //delete importContact si termine et sans erreur
         /*List<ImportContact> listAllImportContact = importContactDao.loadAll();
@@ -261,7 +386,8 @@ public class AccueilActivity extends NavDrawerActivity {
                         }
                         //Log.i("enregistre","medecin new: "+lineSplitted[2]);
                         //etablissement.save();
-                        etablissementDao.insert(etablissement);
+                        etablissement.setId(etablissementDao.insert(etablissement));
+                        createAndSaveEtablissementLightFromEtablissement(etablissement);
                         nbLigneLue++;
                         nbImportEffectue++;
                         current.setNbLigneLue(nbLigneLue);
@@ -317,7 +443,6 @@ public class AccueilActivity extends NavDrawerActivity {
             progressBar.setProgress(integer[0],true);
         }
     }
-
 
     private class AsyncTaskRunnerContact extends AsyncTask<Void, Integer, Void> {
 
@@ -411,7 +536,7 @@ public class AccueilActivity extends NavDrawerActivity {
                         contact.setNom(lineSplitted[7].toUpperCase());
                         String prenom = "";
                         if (lineSplitted[8].length()>1) {
-                            prenom = lineSplitted[8].substring(0,1).toUpperCase()+lineSplitted[8].substring(1,lineSplitted[8].length()-1).toLowerCase();
+                            prenom = lineSplitted[8].substring(0,1).toUpperCase()+lineSplitted[8].substring(1,lineSplitted[8].length()).toLowerCase();
                         }
                         contact.setPrenom(prenom);
                         contact.setProfession(mapProfession.get(lineSplitted[10]));
@@ -420,6 +545,9 @@ public class AccueilActivity extends NavDrawerActivity {
                             if (lineSplitted[16].equals("Qualifié en Médecine Générale") || lineSplitted[16].equals("Spécialiste en Médecine Générale")) {
                                 contact.setSavoirFaire(mapSavoirFaire.get("Médecine Générale"));
                             } else {
+                                if (lineSplitted[16].equalsIgnoreCase("Chirurgie Orale")) {
+                                    lineSplitted[16]="Chirurgie Orale";
+                                }
                                 contact.setSavoirFaire(mapSavoirFaire.get(lineSplitted[16]));
                             }
                         }
@@ -521,7 +649,8 @@ public class AccueilActivity extends NavDrawerActivity {
                         Log.i("enregistre","medecin new: "+lineSplitted[2]);
 
 
-                        contactDao.insert(contact);
+                        contact.setId(contactDao.insert(contact));
+                        createAndSaveContactLightFromContact(contact);
 
                         nbLigneLue++;
                         nbImportEffectue++;
@@ -626,6 +755,11 @@ public class AccueilActivity extends NavDrawerActivity {
                 importContactDao.insert(new ImportContact(i, "PS_LibreAcces_Personne_activite_202102020955_"+(int) i+".txt", false, "", "", 0, 0, 0));
                 Log.i("enregistre","importContact: "+i);
             }
+
+            /*for (long i = 1l;i<4;i++) {
+                importContactDao.insert(new ImportContact(i, "PS_LibreAcces_Personne_activite_test_"+(int) i+".txt", false, "", "", 0, 0, 0));
+                Log.i("enregistre","importContact: "+i);
+            }*/
         }
     }
 
@@ -633,6 +767,7 @@ public class AccueilActivity extends NavDrawerActivity {
 
         Long count = departementDao.count();
         if (count ==0) {
+            departementDao.insert(new Departement(0l,"00","Indéfini",15l));
             departementDao.insert(new Departement(1l,"01","Ain", 0l));
             departementDao.insert(new Departement(2l,"02","Aisne",6l));
             departementDao.insert(new Departement(3l,"03","Allier",0l));
@@ -728,9 +863,11 @@ public class AccueilActivity extends NavDrawerActivity {
             departementDao.insert(new Departement(93l,"93","Seine-Saint-Denis",7l));
             departementDao.insert(new Departement(94l,"94","Val-de-Marne",7l));
             departementDao.insert(new Departement(95l,"95","Val-D'Oise",7l));
+            departementDao.insert(new Departement(96l,"96","Militaire",15l));
             departementDao.insert(new Departement(97l,"97","Outre-Mer",13l));
             departementDao.insert(new Departement(98l,"98","Autre",14l));
             departementDao.insert(new Departement(99l,"XX","Indéfini",15l));
+            departementDao.insert(new Departement(100l,"GL","Etranger",15l));
         }
     }
 
@@ -1034,6 +1171,37 @@ public class AccueilActivity extends NavDrawerActivity {
             typeEtablissementDao.insert(new TypeEtablissement(162l,"Village d'Enfants"));
             typeEtablissementDao.insert(new TypeEtablissement(163l,""));
         }
+    }
+
+    private void createAndSaveContactLightFromContact(Contact contact) {
+        ContactLight contactLight = new ContactLight();
+        contactLight.setId(contact.getId());
+        contactLight.setIdPP(contact.getIdPP());
+        contactLight.setCodeCivilite(contact.getCodeCivilite());
+        contactLight.setNom(contact.getNom());
+        contactLight.setPrenom(contact.getPrenom());
+        contactLight.setRaisonSocial(contact.getRaisonSocial());
+        contactLight.setComplement(contact.getComplement());
+        contactLight.setAdresse(contact.getAdresse());
+        contactLight.setCp(contact.getCp());
+        contactLight.setVille(contact.getVille());
+        contactLight.setTelephone(contact.getTelephone());
+        contactLight.setFax(contact.getFax());
+        contactLight.setEmail(contact.getEmail());
+        contactLightDao.insert(contactLight);
+    }
+
+    private void createAndSaveEtablissementLightFromEtablissement(Etablissement etablissement) {
+        EtablissementLight etablissementLight = new EtablissementLight();
+        etablissementLight.setId(etablissement.getId());
+        etablissementLight.setNumeroFinessET(etablissement.getNumeroFinessET());
+        etablissementLight.setRaisonSocial(etablissement.getRaisonSocial());
+        etablissementLight.setAdresse(etablissement.getAdresse());
+        etablissementLight.setCp(etablissement.getCp());
+        etablissementLight.setVille(etablissement.getVille());
+        etablissementLight.setTelephone(etablissement.getTelephone());
+        etablissementLight.setFax(etablissement.getFax());
+        etablissementLightDao.insert(etablissementLight);
     }
 
     private boolean comparer(Contact medecin1, Contact medecin2){
